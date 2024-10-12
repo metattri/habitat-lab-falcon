@@ -62,7 +62,7 @@ pip install -e habitat-baselines
 
 - Download Scene Datasets
 
-Following the instructions of in **HM3D** and **MatterPort3D** [Habitat-lab's Datasets.md](https://github.com/facebookresearch/habitat-lab/blob/main/DATASETS.md).
+Following the instructions for **HM3D** and **MatterPort3D** in Habitat-lab's [Datasets.md](https://github.com/facebookresearch/habitat-lab/blob/main/DATASETS.md).
 
 - Download Episode Datasets
 
@@ -73,7 +73,7 @@ After downloading, unzip and place the datasets in the default location:
 unzip -d data/datasets/pointnav
 ```
 
-The file structure should look like that:
+The file structure should look like this:
 ```
 data
 └── datasets
