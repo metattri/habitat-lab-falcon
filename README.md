@@ -15,7 +15,7 @@
       <img src="https://img.shields.io/badge/Falcon-Link-42ba94.svg">
     </a>
     <a href="https://arxiv.org/abs/2409.13244">
-      <img src="https://img.shields.io/badge/arXiv-2409.13244-blue.svg" />
+      <img src="https://img.shields.io/badge/arXiv-2409.13244-red.svg" />
     </a>
     <a href="https://github.com/facebookresearch/habitat-sim">
       <img src="https://img.shields.io/static/v1?label=supports&message=Habitat%20Sim&color=informational&link=https://github.com/facebookresearch/habitat-sim">
