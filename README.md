@@ -36,7 +36,7 @@ The results demonstrate the importance of future prediction and our method achie
 
 ### Getting Started
 
-1. **Preparing conda env**
+#### 1. **Preparing conda env**
 
 Assuming you have [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/) installed, let's prepare a conda env:
 ```
@@ -45,7 +45,7 @@ conda create -n $conda_env_name python=3.9 cmake=3.14.0
 conda activate $conda_env_name
 ```
 
-2. **conda install habitat-sim & habitat-lab**
+#### 2. **conda install habitat-sim & habitat-lab**
 Following [Habitat-lab](https://github.com/facebookresearch/habitat-lab.git)'s instruction:
 ```
 conda install habitat-sim withbullet -c conda-forge -c aihabitat
@@ -58,13 +58,13 @@ pip install -e habitat-lab
 pip install -e habitat-baselines
 ```
 
-3. **Downloading the Social-HM3D & Social-MP3D datasets**
+#### 3. **Downloading the Social-HM3D & Social-MP3D datasets**
 
-### Download Scene Datasets
+- Download Scene Datasets
 
 Following the instructions of in **HM3D** and **MatterPort3D** [Habitat-lab's Datasets.md](https://github.com/facebookresearch/habitat-lab/blob/main/DATASETS.md).
 
-### Download Episode Datasets
+- Download Episode Datasets
 
 Download social navigation (SocialNav) episodes for the test scenes, which can be found here: [Link](https://drive.google.com/drive/folders/1V0a8PYeMZimFcHgoJGMMTkvscLhZeKzD?usp=drive_link).
 
@@ -104,9 +104,9 @@ Note that here the definition of SocialNav is different from the original task i
 
 In this paper, two rule-based methods are used for evaluation:
 
-- **ASTAR**: A well-known pathfinding algorithm that finds the shortest path using a heuristic to estimate the cost.
+- **[ASTAR](https://ieeexplore.ieee.org/document/4082128)**: A well-known pathfinding algorithm that finds the shortest path using a heuristic to estimate the cost.
 
-- **ORCA (Optimal Reciprocal Collision Avoidance)**: A multi-agent navigation algorithm designed for collision-free movement through reciprocal avoidance.
+- **[ORCA](https://gamma.cs.unc.edu/ORCA/publications/ORCA.pdf)**: A multi-agent navigation algorithm designed for collision-free movement through reciprocal avoidance.
 
 You can evaluate Astar or ORCA on the Social-HM3D or Social-MP3D datasets using the following template:
 
