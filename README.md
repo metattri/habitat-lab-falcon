@@ -1,35 +1,48 @@
-<p align="center">
-  <img src="web-img/task_illustration_v5.png" width="700">
-  <h1 align="center">From Cognition to Precognition: A Future-Aware Framework for Social Navigation</h1>
-  <h3 align="center">
-    <a href="https://zeying-gong.github.io/">Zeying Gong</a>, <a href="https://hutslib.github.io/">Tianshuai Hu</a>, <a href="https://precognition.team/">Ronghe Qiu</a>, <a href="https://junweiliang.me/">Junwei Liang</a>
+<div align="center">
+  <h1>From Cognition to Precognition: <br>A Future-Aware Framework for Social Navigation</h1>
+  <h3>
+    <a href="https://zeying-gong.github.io/">Zeying Gong</a>, 
+    <a href="https://hutslib.github.io/">Tianshuai Hu</a>, 
+    <a href="https://precognition.team/">Ronghe Qiu</a>, 
+    <a href="https://junweiliang.me/">Junwei Liang</a>
   </h3>
-  <p align="center">
-    <a href="https://zeying-gong.github.io/projects/falcon/">Project Website</a> , <a href="https://arxiv.org/abs/2409.13244">Paper (ArXiv)</a>
+  
+  <p>
+    <a href="https://zeying-gong.github.io/projects/falcon/">Project Website</a> | 
+    <a href="https://arxiv.org/abs/2409.13244">Paper (ArXiv)</a>
   </p>
-  <p align="center">
-    <a href="https://github.com/Zeying-Gong/habitat-lab">
-      <img src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-    </a>
+
+  <!-- Badges -->
+  <p>
     <a href="https://zeying-gong.github.io/projects/falcon/">
-      <img src="https://img.shields.io/badge/Falcon-Link-42ba94.svg">
+      <img src="https://img.shields.io/badge/Web-Falcon-deepgreen.svg" alt="Falcon Project Web Badge">
+    </a>
+    <a href="https://www.youtube.com/watch?v=elNI7XlRyvU">
+      <img src="https://img.shields.io/badge/Video-Youtube-red.svg" alt="YouTube Video Badge">
     </a>
     <a href="https://arxiv.org/abs/2409.13244">
-      <img src="https://img.shields.io/badge/arXiv-2409.13244-red.svg" />
+      <img src="https://img.shields.io/badge/cs.ai-arxiv:2409.13244-42ba94.svg" alt="arXiv Paper Badge">
     </a>
     <a href="https://github.com/facebookresearch/habitat-sim">
-      <img src="https://img.shields.io/static/v1?label=supports&message=Habitat%20Sim&color=informational&link=https://github.com/facebookresearch/habitat-sim">
+      <img src="https://img.shields.io/static/v1?label=supports&message=Habitat%20Sim&color=informational" alt="Habitat Sim Badge">
+    </a>
+    <a href="https://github.com/Zeying-Gong/habitat-lab/blob/main/LICENSE">
+      <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License Badge">
     </a>
   </p>
-</p>
+
+  <!-- Task Illustration Image -->
+  <img src="web-img/task_illustration_v5.png" width="600" alt="Task Illustration">
+</div>
+
 
 ## :sparkles: Overview
 
 To navigate safely and efficiently in crowded spaces, robots should not only perceive the current state of the environment but also anticipate future human movements. 
 In this paper, we propose a reinforcement learning architecture, namely **Falcon**, to tackle socially-aware navigation by explicitly predicting human trajectories and penalizing actions that block future human paths. 
-To facilitate realistic evaluation, we introduce a novel SocialNav benchmark containing two new datasets, Social-HM3D and Social-MP3D. 
+To facilitate realistic evaluation, we introduce a novel SocialNav benchmark containing two new datasets, [**Social-HM3D & Social-MP3D**](#3-downloading-the-social-hm3d--social-mp3d-datasets).
 This benchmark offers large-scale photo-realistic indoor scenes populated with a reasonable amount of human agents based on scene area size, incorporating natural human movements and trajectory patterns. 
-We conduct a detailed experimental analysis with the state-of-the-art learning-based method and two classic rule-based path-planning algorithms on the new benchmark. 
+We conduct a detailed experimental analysis with the state-of-the-art [**learning-based method**](#two-classic-rule-based-methods-astar--orca) and two classic [**rule-based path-planning algorithms**](#two-rl-based-methods-proximity--falconours) on the new benchmark. 
 The results demonstrate the importance of future prediction and our method achieves the best task success rate of 55% while maintaining about 90% personal space compliance.
 
 ## :hammer_and_wrench: Installation
@@ -132,7 +145,7 @@ habitat_baselines.eval.video_option=["disk"]
 
 ### Two RL-based methods (Proximity & *Falcon(ours)*)
 
-**TODO: this section is work in progress.** The code of Proximity can be found in [this link](https://github.com/EnricoCancelli/ProximitySocialNav).
+**TODO: this section is work in progress.** The code of Proximity can be found in this [link](https://github.com/EnricoCancelli/ProximitySocialNav).
 
 ## :black_nib: Citation
 
