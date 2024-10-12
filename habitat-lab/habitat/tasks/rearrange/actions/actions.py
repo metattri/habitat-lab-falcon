@@ -476,7 +476,7 @@ class BaseVelAction(ArticulatedAgentAction):
         self.cur_articulated_agent.sim_obj.joint_velocities = set_dat["vel"]
         self.cur_articulated_agent.sim_obj.joint_forces = set_dat["pos"]
 
-    def update_base(self):
+    def update_base(self, fix_leg=False):
         ctrl_freq = self._sim.ctrl_freq
 
         before_trans_state = self._capture_articulated_agent_state()
@@ -518,7 +518,7 @@ class BaseVelAction(ArticulatedAgentAction):
             # object.
             self.cur_grasp_mgr.update_object_to_grasp()
 
-        if self.cur_articulated_agent._base_type == "leg":
+        if self.cur_articulated_agent._base_type == "leg" and fix_leg:
             # Fix the leg joints
             self.cur_articulated_agent.leg_joint_pos = (
                 self.cur_articulated_agent.params.leg_init_params

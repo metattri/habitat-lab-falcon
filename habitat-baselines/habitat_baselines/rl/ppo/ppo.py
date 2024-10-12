@@ -27,6 +27,8 @@ from habitat_baselines.utils.common import (
 )
 from habitat_baselines.utils.timing import g_timer
 
+from habitat_baselines.rl.ppo.belief_policy import AttentiveBeliefPolicy
+
 EPS_PPO = 1e-5
 
 
@@ -35,7 +37,7 @@ class PPO(nn.Module, Updater):
     entropy_coef: Union[float, LagrangeInequalityCoefficient]
 
     @classmethod
-    def from_config(cls, actor_critic: NetPolicy, config):
+    def from_config(cls, actor_critic: NetPolicy, config, aux_tasks = [], aux_names = [], aux_cfg = None):
         return cls(
             actor_critic=actor_critic,
             clip_param=config.clip_param,
@@ -43,6 +45,7 @@ class PPO(nn.Module, Updater):
             num_mini_batch=config.num_mini_batch,
             value_loss_coef=config.value_loss_coef,
             entropy_coef=config.entropy_coef,
+            aux_loss_coef=0.0, # config.aux_loss_coef,
             lr=config.lr,
             eps=config.eps,
             max_grad_norm=config.max_grad_norm,
@@ -50,6 +53,9 @@ class PPO(nn.Module, Updater):
             use_normalized_advantage=config.use_normalized_advantage,
             entropy_target_factor=config.entropy_target_factor,
             use_adaptive_entropy_pen=config.use_adaptive_entropy_pen,
+            aux_tasks=aux_tasks,
+            aux_names=aux_names,
+            aux_cfg=aux_cfg,
         )
 
     def __init__(
@@ -60,6 +66,7 @@ class PPO(nn.Module, Updater):
         num_mini_batch: int,
         value_loss_coef: float,
         entropy_coef: float,
+        aux_loss_coef: float = 0.0,
         lr: Optional[float] = None,
         eps: Optional[float] = None,
         max_grad_norm: Optional[float] = None,
@@ -67,6 +74,9 @@ class PPO(nn.Module, Updater):
         use_normalized_advantage: bool = True,
         entropy_target_factor: float = 0.0,
         use_adaptive_entropy_pen: bool = False,
+        aux_tasks=[],
+        aux_names=[],
+        aux_cfg=None,
     ) -> None:
         super().__init__()
 
@@ -78,7 +88,7 @@ class PPO(nn.Module, Updater):
 
         self.value_loss_coef = value_loss_coef
         self.entropy_coef = entropy_coef
-
+        self.aux_loss_coef = aux_loss_coef   ## added
         self.max_grad_norm = max_grad_norm
         self.use_clipped_value_loss = use_clipped_value_loss
 
@@ -100,8 +110,15 @@ class PPO(nn.Module, Updater):
                 greater_than=True,
             ).to(device=self.device)
 
+        self._aux_tasks=[]
+        self._aux_names=[]
+        if aux_cfg:
+            self.aux_cfg = aux_cfg
+            self._aux_tasks = aux_tasks
+            self._aux_names = aux_names
+
         self.use_normalized_advantage = use_normalized_advantage
-        self.optimizer = self._create_optimizer(lr, eps)
+        self.optimizer = self._create_optimizer(lr, eps, self._aux_tasks)
 
         self.non_ac_params = [
             p
@@ -109,10 +126,18 @@ class PPO(nn.Module, Updater):
             if not name.startswith("actor_critic.")
         ]
 
-    def _create_optimizer(self, lr, eps):
+    def _create_optimizer(self, lr, eps, aux_tasks=None):
         params = list(filter(lambda p: p.requires_grad, self.parameters()))
         logger.info(
-            f"Number of params to train: {sum(param.numel() for param in params)}"
+            f"(No Aux) Main Number of params to train: {sum(param.numel() for param in params)}"
+        )
+
+        if len(aux_tasks) > 0:
+            for aux_t in aux_tasks:
+                params += list(filter(lambda p: p.requires_grad, aux_t.parameters()))
+
+        logger.info(
+            f"Total Number of params to train: {sum(param.numel() for param in params)}"
         )
         if len(params) > 0:
             optim_cls = optim.Adam
@@ -176,21 +201,40 @@ class PPO(nn.Module, Updater):
                 learner_metrics[f"{prefix}_{name}"].append(op(t))
 
         self._set_grads_to_none()
-
-        (
-            values,
-            action_log_probs,
-            dist_entropy,
-            _,
-            aux_loss_res,
-        ) = self._evaluate_actions(
-            batch["observations"],
-            batch["recurrent_hidden_states"],
-            batch["prev_actions"],
-            batch["masks"],
-            batch["actions"],
-            batch.get("rnn_build_seq_info", None),
-        )
+        aux_dist_entropy = None
+        if isinstance(self.actor_critic, AttentiveBeliefPolicy):
+            (
+                values,
+                action_log_probs,
+                dist_entropy,
+                final_rnn_state,
+                rnn_features,
+                individual_rnn_features,
+                aux_dist_entropy,
+                aux_weights,
+            ) = self._evaluate_actions(
+                batch["observations"],
+                batch["recurrent_hidden_states"],
+                batch["prev_actions"],
+                batch["masks"],
+                batch["actions"],
+                batch.get("rnn_build_seq_info", None),
+            )
+        else:
+            (
+                values,
+                action_log_probs,
+                dist_entropy,
+                final_rnn_state,
+                aux_loss_res,
+            ) = self._evaluate_actions(
+                batch["observations"],
+                batch["recurrent_hidden_states"],
+                batch["prev_actions"],
+                batch["masks"],
+                batch["actions"],
+                batch.get("rnn_build_seq_info", None),
+            )
 
         ratio = torch.exp(action_log_probs - batch["action_log_probs"])
 
@@ -234,18 +278,37 @@ class PPO(nn.Module, Updater):
             mean_fn,
             (action_loss, value_loss, dist_entropy),
         )
+        
+        total_aux_loss = 0
+        aux_losses = []
+        if isinstance(self.actor_critic, AttentiveBeliefPolicy) and len(self._aux_tasks) > 0:
+            aux_raw_losses = self.actor_critic.evaluate_aux_losses(batch, final_rnn_state, rnn_features, individual_rnn_features)
+            aux_losses = torch.stack(aux_raw_losses)
+            total_aux_loss = torch.sum(aux_losses, dim=0)
 
         all_losses = [
             self.value_loss_coef * value_loss,
             action_loss,
         ]
 
+        if isinstance(self.actor_critic, AttentiveBeliefPolicy):
+            all_losses.append(total_aux_loss * self.aux_loss_coef)
+            
         if isinstance(self.entropy_coef, float):
             all_losses.append(-self.entropy_coef * dist_entropy)
         else:
             all_losses.append(self.entropy_coef.lagrangian_loss(dist_entropy))
 
-        all_losses.extend(v["loss"] for v in aux_loss_res.values())
+        if aux_dist_entropy is not None:
+            # TODO: maybe take the mean of the entropy, since also dist_entropy is averaged on line 150
+            all_losses.append(aux_dist_entropy * self.aux_cfg.entropy_coef)
+
+        # #debug
+        # if np.isnan(total_loss.item()):
+        #     print("total_loss is nan")
+
+        if len(self._aux_tasks) == 0:
+            all_losses.extend(v["loss"] for v in aux_loss_res.values())
 
         total_loss = torch.stack(all_losses).sum()
 
@@ -266,6 +329,7 @@ class PPO(nn.Module, Updater):
             learner_metrics["value_loss"].append(value_loss)
             learner_metrics["action_loss"].append(action_loss)
             learner_metrics["dist_entropy"].append(dist_entropy)
+
             if epoch == (self.ppo_epoch - 1):
                 learner_metrics["ppo_fraction_clipped"].append(
                     (ratio > (1.0 + self.clip_param)).float().mean()
@@ -278,9 +342,16 @@ class PPO(nn.Module, Updater):
                     self.entropy_coef().detach()
                 )
 
-            for name, res in aux_loss_res.items():
-                for k, v in res.items():
-                    learner_metrics[f"aux_{name}_{k}"].append(v.detach())
+            if len(self._aux_tasks) == 0: # not use my aux
+                for name, res in aux_loss_res.items():
+                    for k, v in res.items():
+                        learner_metrics[f"aux_{name}_{k}"].append(v.detach())
+            else:
+                learner_metrics["aux_entropy"].append(aux_dist_entropy)
+                for i, aux_loss in enumerate(aux_losses):
+                    learner_metrics[f"aux_entropy_{self._aux_names[i]}"].append(aux_loss.item())
+                for i, aux_weight in enumerate(aux_weights):
+                    learner_metrics[f"aux_weights_{self._aux_names[i]}"].append(aux_weight.item())
 
             if "is_stale" in batch:
                 assert isinstance(batch["is_stale"], torch.Tensor)

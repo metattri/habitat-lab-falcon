@@ -14,7 +14,7 @@ from habitat.articulated_agents.articulated_agent_interface import (
 from habitat_sim.physics import JointMotorSettings, MotionType
 from habitat_sim.simulator import Simulator
 from habitat_sim.utils.common import orthonormalize_rotation_shear
-
+import habitat_sim
 
 class Manipulator(ArticulatedAgentInterface):
     """Generic manipulator interface defines standard API functions. Robot with a controllable arm."""
@@ -86,6 +86,8 @@ class Manipulator(ArticulatedAgentInterface):
                 fixed_base=self._fixed_base,
                 maintain_link_order=self._maintain_link_order,
             )
+        if self.urdf_path == 'data/robots/hab_spot_arm/urdf/hab_spot_arm.urdf': # for spot, use kinematic
+            self.sim_obj.motion_type = habitat_sim.physics.MotionType.KINEMATIC
         if self._limit_robo_joints:
             # automatic joint limit clamping after each call to sim.step_physics()
             self.sim_obj.auto_clamp_joint_limits = True

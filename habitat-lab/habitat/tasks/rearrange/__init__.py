@@ -33,3 +33,4 @@ def _try_register_rearrange_task():
     import habitat.tasks.rearrange.sub_tasks.place_task
     import habitat.tasks.rearrange.sub_tasks.reach_sensors
     import habitat.tasks.rearrange.sub_tasks.reach_task
+    import habitat.tasks.rearrange.social_nav_v2.socialnav_task ## socialnav_v2

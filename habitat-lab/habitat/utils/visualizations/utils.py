@@ -225,7 +225,13 @@ def observations_to_image(observation: Dict, info: Dict) -> np.ndarray:
     """
     render_obs_images: List[np.ndarray] = []
     for sensor_name in observation:
-        if len(observation[sensor_name].shape) > 1:
+        if 'other_agent_gps' in sensor_name or 'oracle_humanoid_future_trajectory' in sensor_name:
+            continue
+        elif 'oracle_shortest_path_sensor' in sensor_name or 'human_velocity_sensor' in sensor_name:
+            continue
+        elif sensor_name.startswith('agent_') and int(sensor_name.split('_')[1]) > 0: # 1 for agent_1
+            continue
+        elif len(observation[sensor_name].shape) > 1:
             obs_k = observation[sensor_name]
             if not isinstance(obs_k, np.ndarray):
                 obs_k = obs_k.cpu().numpy()
@@ -360,7 +366,12 @@ def overlay_frame(frame, info, additional=None):
     """
     Renders text from the `info` dictionary to the `frame` image.
     """
-
+    if "top_down_map" in info:
+        info.pop("top_down_map")
+    if "human_future_trajectory" in info:
+        info.pop("human_future_trajectory")
+    if "human_velocity_measure" in info:
+        info.pop("human_velocity_measure")
     lines = []
     flattened_info = flatten_dict(info)
     for k, v in flattened_info.items():

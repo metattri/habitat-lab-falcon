@@ -838,9 +838,13 @@ def is_outdoor(
     num_tries = 0
     nav_samples: List[np.ndarray] = []
     while len(nav_samples) < num_samples and num_tries < max_sample_attempts:
-        nav_sample = pathfinder.get_random_navigable_point(
-            island_index=island_ix
-        )
+        num_tries += 1
+        try:
+            nav_sample = pathfinder.get_random_navigable_point(
+                island_index=island_ix
+            )
+        except RuntimeError as e:
+            nav_sample = np.nan
         if np.any(np.isnan(nav_sample)):
             continue
         if min_sample_dist is not None:
@@ -853,7 +857,8 @@ def is_outdoor(
             if too_close:
                 continue
         nav_samples.append(nav_sample)
-
+    if len(nav_samples) == 0:
+        return False
     # 2. For each sample, raycast in +Y direction.
     #    - Any hit points classify the sample as indoor, otherwise outdoor.
     up = mn.Vector3(0, 1.0, 0)

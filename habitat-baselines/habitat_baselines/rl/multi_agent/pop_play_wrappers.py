@@ -170,9 +170,9 @@ class MultiPolicy(Policy):
         prev_actions,
         masks,
         deterministic=False,
-        **kwargs,
+        **kwargs, 
     ):
-        n_agents = len(self._active_policies)
+        n_agents = masks.shape[1] # len(self._active_policies)
         split_index_dict = self._build_index_split(
             rnn_hidden_states, prev_actions, kwargs
         )
@@ -182,7 +182,10 @@ class MultiPolicy(Policy):
         agent_prev_actions = prev_actions.split(
             split_index_dict["index_len_prev_actions"], -1
         )
-        agent_masks = masks.split([1, 1], -1)
+        # modify to adapt to the multi-agent setting
+        split_sizes = [1] * n_agents # n_agents = len(self._active_policies)
+        agent_masks = masks.split(split_sizes, -1)
+        # agent_masks = masks.split([1, 1], -1)
         agent_actions = []
         for agent_i, policy in enumerate(self._active_policies):
             agent_obs = self._update_obs_with_agent_prefix_fn(
@@ -313,7 +316,11 @@ class MultiPolicy(Policy):
         agent_prev_actions = torch.split(
             prev_actions, split_index_dict["index_len_prev_actions"], dim=-1
         )
-        agent_masks = torch.split(masks, [1, 1], dim=-1)
+        # agent_masks = torch.split(masks, [1, 1], dim=-1)
+        n_agents = len(self._active_policies)
+        split_sizes = [1] * n_agents
+        agent_masks = torch.split(masks, split_sizes, dim=-1)
+
         all_value = []
         for agent_i, policy in enumerate(self._active_policies):
             agent_obs = self._update_obs_with_agent_prefix_fn(
@@ -485,12 +492,18 @@ class MultiStorage(Storage):
             storage.advance_rollout(buffer_index)
 
     def compute_returns(self, next_value, use_gae, gamma, tau):
-        for storage in self._active_storages:
-            storage.compute_returns(next_value, use_gae, gamma, tau)
+        if len(self._active_storages) > 1:
+            for i, storage in enumerate(self._active_storages):
+                storage.compute_returns(next_value[:,:,i], use_gae, gamma, tau)
+        else:
+            self._active_storages[0].compute_returns(next_value[:,:,0], use_gae, gamma, tau)            
+            # for storage in self._active_storages:
+            #     storage.compute_returns(next_value, use_gae, gamma, tau)
 
     def after_update(self):
         for storage in self._active_storages:
-            storage.after_update()
+            if storage is not None: # humanoid is None 
+                storage.after_update()
 
     def _merge_step_outputs(self, get_step):
         obs: Dict[str, torch.Tensor] = {}

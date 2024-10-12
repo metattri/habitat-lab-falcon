@@ -157,7 +157,9 @@ class HabitatEvaluator(Evaluator):
             # NB: Move actions to CPU.  If CUDA tensors are
             # sent in to env.step(), that will create CUDA contexts
             # in the subprocesses.
-            if is_continuous_action_space(env_spec.action_space):
+            if hasattr(agent, '_agents') and agent._agents[0]._actor_critic.action_distribution_type == 'categorical':
+                step_data = [a.numpy() for a in action_data.env_actions.cpu()]
+            elif is_continuous_action_space(env_spec.action_space):
                 # Clipping actions to the specified limits
                 step_data = [
                     np.clip(
@@ -233,12 +235,12 @@ class HabitatEvaluator(Evaluator):
                             {k: v[i] * 0.0 for k, v in batch.items()},
                             disp_info,
                         )
-                        final_frame = overlay_frame(final_frame, disp_info)
+                        # final_frame = overlay_frame(final_frame, disp_info)
                         rgb_frames[i].append(final_frame)
                         # The starting frame of the next episode will be the final element..
                         rgb_frames[i].append(frame)
                     else:
-                        frame = overlay_frame(frame, disp_info)
+                        # frame = overlay_frame(frame, disp_info)
                         rgb_frames[i].append(frame)
 
                 # episode ended
@@ -263,6 +265,7 @@ class HabitatEvaluator(Evaluator):
                             video_dir=config.habitat_baselines.video_dir,
                             # Since the final frame is the start frame of the next episode.
                             images=rgb_frames[i][:-1],
+                            scene_id=f"{current_episodes_info[i].scene_id}".split('/')[-1].split('.')[0], # my added
                             episode_id=f"{current_episodes_info[i].episode_id}_{ep_eval_count[k]}",
                             checkpoint_idx=checkpoint_index,
                             metrics=extract_scalars_from_info(disp_info),

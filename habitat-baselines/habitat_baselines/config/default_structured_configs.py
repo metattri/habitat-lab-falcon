@@ -324,7 +324,11 @@ class VERConfig(HabitatBaselinesBaseConfig):
 
 @dataclass
 class AuxLossConfig(HabitatBaselinesBaseConfig):
-    pass
+    max_human_num: int = 6
+    position_dim: int = 2
+    loss_scale: float = 0.1
+    future_step: int = 4
+    # pass
 
 
 @dataclass

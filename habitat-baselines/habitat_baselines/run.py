@@ -20,6 +20,8 @@ from habitat_baselines.config.default_structured_configs import (
 if TYPE_CHECKING:
     from omegaconf import DictConfig
 
+## for import functions related to falcon
+import falcon
 
 @hydra.main(
     version_base=None,

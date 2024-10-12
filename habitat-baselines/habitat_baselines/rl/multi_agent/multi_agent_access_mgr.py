@@ -288,6 +288,8 @@ class MultiAgentAccessMgr(AgentAccessMgr):
     def _sample_active(self):
         """
         Samples the set of agents currently active in the episode.
+
+        Update to only focus on agent_0
         """
 
         self._active_agents, active_agent_types = self._sample_active_idxs()
@@ -296,20 +298,24 @@ class MultiAgentAccessMgr(AgentAccessMgr):
             # If not post init then we are running in evaluation mode and
             # should only setup the policy
             self._multi_storage.set_active(
-                [self._agents[i].rollouts for i in self._active_agents],
+                [self._agents[0].rollouts],
+                # [self._agents[i].rollouts for i in self._active_agents],
                 active_agent_types,
             )
             self._multi_updater.set_active(
-                [self._agents[i].updater for i in self._active_agents]
+                [self._agents[0].updater],
+                # [self._agents[i].updater for i in self._active_agents]
             )
         self._multi_policy.set_active(
-            [self._agents[i].actor_critic for i in self._active_agents]
+            [self._agents[0].actor_critic],
+            # [self._agents[i].actor_critic for i in self._active_agents]
         )
 
     def post_init(self, create_rollouts_fn=None):
         self._is_post_init = True
-        for agent in self._agents:
-            agent.post_init(create_rollouts_fn)
+        self._agents[0].post_init(create_rollouts_fn)
+        # for agent in self._agents:
+        #     agent.post_init(create_rollouts_fn) # focus on agent_0
 
         self._num_updates = 0
         if not self._pop_config.self_play_batched:
@@ -355,13 +361,19 @@ class MultiAgentAccessMgr(AgentAccessMgr):
             self._num_updates % self._pop_config.agent_sample_interval == 0
             and self._pop_config.agent_sample_interval != -1
         ):
-            prev_rollouts = [
-                self._agents[i].rollouts for i in self._active_agents
-            ]
+            prev_rollouts = [self._agents[0].rollouts]
+            
+            # prev_rollouts = [
+            #     self._agents[i].rollouts for i in self._active_agents
+            # ]
+
             self._sample_active()
-            cur_rollouts = [
-                self._agents[i].rollouts for i in self._active_agents
-            ]
+
+            cur_rollouts = [self._agents[0].rollouts]
+
+            # cur_rollouts = [
+            #     self._agents[i].rollouts for i in self._active_agents
+            # ]
 
             # We just sampled new agents. We also need to reset the storage buffer current and starting state.
             for prev_rollout, cur_rollout in zip(prev_rollouts, cur_rollouts):
@@ -374,8 +386,9 @@ class MultiAgentAccessMgr(AgentAccessMgr):
                 cur_rollout.buffers[0] = prev_rollout.buffers[0]
 
     def pre_rollout(self):
-        for agent in self._agents:
-            agent.pre_rollout()
+        self._agents[0].pre_rollout() # focus on agent_0
+        # for agent in self._agents:
+        #     agent.pre_rollout()
 
     def get_resume_state(self):
         return {

@@ -46,7 +46,6 @@ try:
 except ImportError:
     clip = None
 
-
 @baseline_registry.register_policy
 class PointNavResNetPolicy(NetPolicy):
     def __init__(
@@ -178,7 +177,7 @@ class ResNetEncoder(nn.Module):
         self.visual_keys = [
             k
             for k, v in observation_space.spaces.items()
-            if len(v.shape) > 1 and k != ImageGoalSensor.cls_uuid
+            if len(v.shape) > 1 and k != ImageGoalSensor.cls_uuid and k != "oracle_humanoid_future_trajectory"
         ]
         self.key_needs_rescaling = {k: None for k in self.visual_keys}
         for k, v in observation_space.spaces.items():
