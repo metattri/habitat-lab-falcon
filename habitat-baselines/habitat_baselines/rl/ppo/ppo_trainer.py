@@ -794,6 +794,7 @@ class PPOTrainer(BaseRLTrainer):
                             wall_time=(time.time() - self.t_start) + prev_time,
                         ),
                     )
+                    print(f'PPO save to ckpt.{count_checkpoints}.pth ')
                     count_checkpoints += 1
 
                 profiling_wrapper.range_pop()  # train update

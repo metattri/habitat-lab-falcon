@@ -899,11 +899,17 @@ class TopDownMap(Measure):
             (self._top_down_map.shape[0], self._top_down_map.shape[1]),
             sim=self._sim,
         )
+        if (a_x < self._top_down_map.shape[0] and a_x >= 0) and (a_y < self._top_down_map.shape[0] and a_y >= 0):
+            pass
+        else:
+            return a_x, a_y
         # Don't draw over the source point
+        # if self._top_down_map[a_x, a_y] != maps.MAP_SOURCE_POINT_INDICATOR:
+        #     color = 10 + min(
+        #         self._step_count * 245 // self._config.max_episode_steps, 245
+        #     )
         if self._top_down_map[a_x, a_y] != maps.MAP_SOURCE_POINT_INDICATOR:
-            color = 10 + min(
-                self._step_count * 245 // self._config.max_episode_steps, 245
-            )
+            color = maps.MAP_SOURCE_POINT_INDICATOR + agent_index * 10  # fit on each agent
 
             thickness = self.line_thickness
             if self._previous_xy_location[agent_index] is not None:
@@ -995,6 +1001,8 @@ class DistanceToGoal(Measure):
                 current_position[1],
                 current_position[2],
             )
+            if np.isnan(distance_to_target) or np.isinf(distance_to_target):
+                distance_to_target = 100
             self._metric = distance_to_target
 
 

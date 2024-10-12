@@ -207,13 +207,32 @@ class SingleAgentAccessMgr(AgentAccessMgr):
                 map_location="cpu",
             )
 
-        if self._config.habitat_baselines.rl.ddppo.pretrained:
-            actor_critic.load_state_dict(
-                {  # type: ignore
-                    k[len("actor_critic.") :]: v
-                    for k, v in pretrained_state["state_dict"].items()
-                }
-            )
+        # adapt to multi-agent setup
+        if self._config.habitat_baselines.rl.ddppo.pretrained and (self.agent_name == "agent_0" or self.agent_name == "main_agent") : 
+            # actor_critic.load_state_dict(
+            #     {  # type: ignore
+            #         k[len("actor_critic.") :]: v
+            #         for k, v in pretrained_state["state_dict"].items()
+            #     }
+            # )
+            # adapt to better reload checkpoints
+            if "oracle_humanoid_future_trajectory" in self._env_spec.observation_space.spaces:
+                model_state_dict = actor_critic.state_dict()
+                filtered_pretrained_state_dict = {k[len("actor_critic.") :]: v for k, v in pretrained_state["state_dict"].items() if k[len("actor_critic.") :] in model_state_dict and v.shape == model_state_dict[k[len("actor_critic.") :]].shape}
+                model_state_dict.update(filtered_pretrained_state_dict)
+                actor_critic.load_state_dict(model_state_dict, strict=False)
+            elif self._config.habitat_baselines.rl.auxiliary_losses:
+                model_state_dict = actor_critic.state_dict()
+                filtered_pretrained_state_dict = {k[len("actor_critic.") :]: v for k, v in pretrained_state["state_dict"].items() if k[len("actor_critic.") :] in model_state_dict and v.shape == model_state_dict[k[len("actor_critic.") :]].shape}
+                model_state_dict.update(filtered_pretrained_state_dict)
+                actor_critic.load_state_dict(model_state_dict, strict=False)
+            else:
+                actor_critic.load_state_dict(
+                        { 
+                            k[len("actor_critic.") :]: v
+                            for k, v in pretrained_state["state_dict"].items()
+                        }
+                    )
         elif self._config.habitat_baselines.rl.ddppo.pretrained_encoder:
             prefix = "actor_critic.net.visual_encoder."
             actor_critic.net.visual_encoder.load_state_dict(
@@ -227,7 +246,7 @@ class SingleAgentAccessMgr(AgentAccessMgr):
             for param in actor_critic.visual_encoder.parameters():
                 param.requires_grad_(False)
 
-        if self._config.habitat_baselines.rl.ddppo.reset_critic:
+        if self._config.habitat_baselines.rl.ddppo.reset_critic and hasattr(actor_critic,"critic"):
             nn.init.orthogonal_(actor_critic.critic.fc.weight)
             nn.init.constant_(actor_critic.critic.fc.bias, 0)
 

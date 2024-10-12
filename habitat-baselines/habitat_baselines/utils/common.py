@@ -381,6 +381,7 @@ def generate_video(
     video_option: List[str],
     video_dir: Optional[str],
     images: List[np.ndarray],
+    scene_id: List[str],
     episode_id: Union[int, str],
     checkpoint_idx: int,
     metrics: Dict[str, float],
@@ -406,6 +407,14 @@ def generate_video(
     """
     if len(images) < 1:
         return ""
+    shape0, shape1 = images[0].shape, images[1].shape
+    if any(s1 > s0 for s0, s1 in zip(shape0, shape1)):
+        padding_0 = [(0, max(s1 - s0, 0)) for s0, s1 in zip(shape0, shape1)]
+        images[0] = np.pad(images[0], pad_width=padding_0, mode='constant', constant_values=0)
+
+    if any(s0 > s1 for s0, s1 in zip(shape0, shape1)):
+        crop_0 = [slice(0, s1) for s1 in shape1]
+        images[0] = images[0][tuple(crop_0)]
 
     metric_strs = []
     if (
@@ -425,14 +434,18 @@ def generate_video(
     for k in use_metrics_k:
         metric_strs.append(f"{k}={metrics[k]:.2f}")
 
-    video_name = f"episode={episode_id}-ckpt={checkpoint_idx}-" + "-".join(
+    # preferred name with scene
+    video_name = f"scene={scene_id}-episode={episode_id}-ckpt={checkpoint_idx}-" + "-".join(
         metric_strs
     )
     if "disk" in video_option:
         assert video_dir is not None
-        images_to_video(
-            images, video_dir, video_name, fps=fps, verbose=verbose
-        )
+        try:
+            images_to_video(
+                images, video_dir, video_name, fps=fps, verbose=verbose
+            )
+        except ValueError as e:
+            print(f"Error in images_to_video: {e}")
     if "tensorboard" in video_option:
         tb_writer.add_video_from_np_images(
             f"episode{episode_id}", checkpoint_idx, images, fps=fps

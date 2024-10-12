@@ -8,3 +8,12 @@ from .resnet_policy import (  # noqa: F401.
     PointNavResNetNet,
     PointNavResNetPolicy,
 )
+from .fixed_policy import (  # noqa: F401.
+    FixedPolicy,
+)
+from .orca_policy import (  # noqa: F401.
+    ORCAPolicy,
+)
+from .astar_policy import (  # noqa: F401.
+    ASTARPolicy,
+)

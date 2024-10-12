@@ -51,24 +51,182 @@ TOP_DOWN_MAP_COLORS[MAP_SHORTEST_PATH_COLOR] = [0, 200, 0]  # Green
 TOP_DOWN_MAP_COLORS[MAP_VIEW_POINT_INDICATOR] = [245, 150, 150]  # Light Red
 TOP_DOWN_MAP_COLORS[MAP_TARGET_BOUNDING_BOX] = [0, 175, 0]  # Green
 
+MAP_HUMAN_1_TRAJECTORY = 14
+MAP_HUMAN_2_TRAJECTORY = 24
+MAP_HUMAN_3_TRAJECTORY = 34
+MAP_HUMAN_4_TRAJECTORY = 44
+MAP_HUMAN_5_TRAJECTORY = 54
+MAP_HUMAN_6_TRAJECTORY = 64
+MAP_HUMAN_7_TRAJECTORY = 74
+MAP_HUMAN_8_TRAJECTORY = 84
+
+MAP_HUMAN_1_FUTURE_GOAL_1 = 15
+MAP_HUMAN_1_FUTURE_GOAL_2 = 16
+MAP_HUMAN_1_FUTURE_GOAL_3 = 17
+MAP_HUMAN_1_FUTURE_GOAL_4 = 18
+MAP_HUMAN_1_FUTURE_GOAL = 19
+MAP_HUMAN_1_FUTURE_TRAJECTORY = 20
+
+
+MAP_HUMAN_2_FUTURE_GOAL_1 = 25
+MAP_HUMAN_2_FUTURE_GOAL_2 = 26
+MAP_HUMAN_2_FUTURE_GOAL_3 = 27
+MAP_HUMAN_2_FUTURE_GOAL_4 = 28
+MAP_HUMAN_2_FUTURE_GOAL = 29
+MAP_HUMAN_2_FUTURE_TRAJECTORY = 30
+
+MAP_HUMAN_3_FUTURE_GOAL_1 = 35
+MAP_HUMAN_3_FUTURE_GOAL_2 = 36
+MAP_HUMAN_3_FUTURE_GOAL_3 = 37
+MAP_HUMAN_3_FUTURE_GOAL_4 = 38
+MAP_HUMAN_3_FUTURE_GOAL = 39
+MAP_HUMAN_3_FUTURE_TRAJECTORY = 40
+
+MAP_HUMAN_4_FUTURE_GOAL_1 = 45
+MAP_HUMAN_4_FUTURE_GOAL_2 = 46
+MAP_HUMAN_4_FUTURE_GOAL_3 = 47
+MAP_HUMAN_4_FUTURE_GOAL_4 = 48
+MAP_HUMAN_4_FUTURE_GOAL = 49
+MAP_HUMAN_4_FUTURE_TRAJECTORY = 50
+
+MAP_HUMAN_5_FUTURE_GOAL_1 = 55
+MAP_HUMAN_5_FUTURE_GOAL_2 = 56
+MAP_HUMAN_5_FUTURE_GOAL_3 = 57
+MAP_HUMAN_5_FUTURE_GOAL_4 = 58
+MAP_HUMAN_5_FUTURE_GOAL = 59
+MAP_HUMAN_5_FUTURE_TRAJECTORY = 60
+
+MAP_HUMAN_6_FUTURE_GOAL_1 = 65
+MAP_HUMAN_6_FUTURE_GOAL_2 = 66
+MAP_HUMAN_6_FUTURE_GOAL_3 = 67
+MAP_HUMAN_6_FUTURE_GOAL_4 = 68
+MAP_HUMAN_6_FUTURE_GOAL = 69
+MAP_HUMAN_6_FUTURE_TRAJECTORY = 70
+
+MAP_HUMAN_7_FUTURE_GOAL_1 = 75
+MAP_HUMAN_7_FUTURE_GOAL_2 = 76
+MAP_HUMAN_7_FUTURE_GOAL_3 = 77
+MAP_HUMAN_7_FUTURE_GOAL_4 = 78
+MAP_HUMAN_7_FUTURE_GOAL = 79
+MAP_HUMAN_7_FUTURE_TRAJECTORY = 80
+
+MAP_HUMAN_8_FUTURE_GOAL_1 = 85
+MAP_HUMAN_8_FUTURE_GOAL_2 = 86
+MAP_HUMAN_8_FUTURE_GOAL_3 = 87
+MAP_HUMAN_8_FUTURE_GOAL_4 = 88
+MAP_HUMAN_8_FUTURE_GOAL = 89
+MAP_HUMAN_8_FUTURE_TRAJECTORY = 90
+
+MAP_HUMAN_8_FUTURE_GOAL_1 = 95
+MAP_HUMAN_8_FUTURE_GOAL_2 = 96
+MAP_HUMAN_8_FUTURE_GOAL_3 = 97
+MAP_HUMAN_8_FUTURE_GOAL_4 = 98
+MAP_HUMAN_8_FUTURE_GOAL = 99
+MAP_HUMAN_8_FUTURE_TRAJECTORY = 100
+
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_1_FUTURE_GOAL_1] = [230, 230, 250] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_1_FUTURE_GOAL_2] = [216, 191, 216] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_1_FUTURE_GOAL_3] = [186, 85, 211] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_1_FUTURE_GOAL_4] = [148, 0, 211] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_1_FUTURE_GOAL] = [138, 43, 226] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_1_FUTURE_TRAJECTORY] = [128, 0, 128] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_1_TRAJECTORY] = [255, 48, 48] # firebrick1 (red)
+
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_2_FUTURE_GOAL_1] = [255, 255, 191] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_2_FUTURE_GOAL_2] = [255, 255, 0] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_2_FUTURE_GOAL_3] = [255, 215, 0] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_2_FUTURE_GOAL_4] = [255, 193, 37] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_2_FUTURE_GOAL] = [255, 165, 0] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_2_FUTURE_TRAJECTORY] = [255, 140, 0] # 
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_2_TRAJECTORY] = [255,182,193] # lightpink
+
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_3_TRAJECTORY] = [0,255,255] # green -》 Cyan
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_4_TRAJECTORY] = [255,165,0] # orange
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_5_TRAJECTORY] = [160,32,240] # purple
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_6_TRAJECTORY] = [255,255,0] # yellow
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_7_TRAJECTORY] = [165,42,42] # indigo
+TOP_DOWN_MAP_COLORS[MAP_HUMAN_8_TRAJECTORY] = [255,182,193] # brown
+
+# def draw_agent(
+#     image: np.ndarray,
+#     agent_center_coord: Tuple[int, int],
+#     agent_rotation: float,
+#     agent_radius_px: int = 5,
+# ) -> np.ndarray:
+#     r"""Return an image with the agent image composited onto it.
+#     Args:
+#         image: the image onto which to put the agent.
+#         agent_center_coord: the image coordinates where to paste the agent.
+#         agent_rotation: the agent's current rotation in radians.
+#         agent_radius_px: 1/2 number of pixels the agent will be resized to.
+#     Returns:
+#         The modified background image. This operation is in place.
+#     """
+
+#     # Rotate before resize to keep good resolution.
+#     rotated_agent = scipy.ndimage.interpolation.rotate(
+#         AGENT_SPRITE, agent_rotation * 180 / np.pi
+#     )
+#     # Rescale because rotation may result in larger image than original, but
+#     # the agent sprite size should stay the same.
+#     initial_agent_size = AGENT_SPRITE.shape[0]
+#     new_size = rotated_agent.shape[0]
+#     agent_size_px = max(
+#         1, int(agent_radius_px * 2 * new_size / initial_agent_size)
+#     )
+#     resized_agent = cv2.resize(
+#         rotated_agent,
+#         (agent_size_px, agent_size_px),
+#         interpolation=cv2.INTER_LINEAR,
+#     )
+#     utils.paste_overlapping_image(image, resized_agent, agent_center_coord)
+#     return image
 
 def draw_agent(
     image: np.ndarray,
     agent_center_coord: Tuple[int, int],
     agent_rotation: float,
     agent_radius_px: int = 5,
+    agent_idx: int = 0,
 ) -> np.ndarray:
-    r"""Return an image with the agent image composited onto it.
+    r"""Return an image with the agent image composited onto it. A version adapts to multi agents.
     Args:
         image: the image onto which to put the agent.
         agent_center_coord: the image coordinates where to paste the agent.
         agent_rotation: the agent's current rotation in radians.
         agent_radius_px: 1/2 number of pixels the agent will be resized to.
+        agent_idx: in this case, 0 means the main agent, the others are human agents.
     Returns:
         The modified background image. This operation is in place.
     """
+    # spot_agent
+    if agent_idx == 0:
+        AGENT_SPRITE = imageio.imread(
+            os.path.join(
+                os.path.dirname(__file__),
+                "assets",
+                "maps_topdown_agent_sprite",
+                "100x100.png",
+            )
+        )
+        AGENT_SPRITE = np.ascontiguousarray(np.flipud(AGENT_SPRITE))
 
+    elif 1 <= agent_idx <= 8:
+        file_name = f"human_{agent_idx}.png"
+        file_path = os.path.join(
+            os.path.dirname(__file__),
+            "assets",
+            "maps_topdown_agent_sprite",
+            file_name
+        )
+        
+        AGENT_SPRITE = imageio.imread(file_path)
+        AGENT_SPRITE = np.ascontiguousarray(np.flipud(AGENT_SPRITE))
+        
+    else:
+        raise ValueError("agent_idx should be between 0 and 8")
     # Rotate before resize to keep good resolution.
+    
     rotated_agent = scipy.ndimage.interpolation.rotate(
         AGENT_SPRITE, agent_rotation * 180 / np.pi
     )
@@ -86,7 +244,6 @@ def draw_agent(
     )
     utils.paste_overlapping_image(image, resized_agent, agent_center_coord)
     return image
-
 
 def pointnav_draw_target_birdseye_view(
     agent_position: np.ndarray,
@@ -412,6 +569,7 @@ def colorize_draw_agent_and_fit_to_height(
     top_down_map = colorize_topdown_map(
         top_down_map, topdown_map_info["fog_of_war_mask"]
     )
+
     for agent_idx in range(len(topdown_map_info["agent_map_coord"])):
         map_agent_pos = topdown_map_info["agent_map_coord"][agent_idx]
         map_agent_angle = topdown_map_info["agent_angle"][agent_idx]
@@ -420,6 +578,7 @@ def colorize_draw_agent_and_fit_to_height(
             agent_center_coord=map_agent_pos,
             agent_rotation=map_agent_angle,
             agent_radius_px=min(top_down_map.shape[0:2]) // 32,
+            agent_idx = agent_idx,
         )
 
     if top_down_map.shape[0] > top_down_map.shape[1]:

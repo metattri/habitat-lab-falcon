@@ -160,6 +160,61 @@ def continuous_vector_action_to_hab_dict(
 
     return action_dict
 
+def continuous_vector_action_to_hab_dict_v2(
+    original_action_space: spaces.Space,
+    vector_action_space: spaces.Box,
+    action: np.ndarray,
+) -> Dict[str, Any]:
+    """
+    Converts a np.ndarray vector action into a habitat-lab compatible action dictionary.
+    """
+    actual_action_space = original_action_space.spaces.copy()
+    if 'agent_0_move_forward' in original_action_space.spaces:
+        agent_0_action_list = ['agent_0_stop','agent_0_move_forward','agent_0_turn_left','agent_0_turn_right']
+        agent_0_action_index = int(action[0])
+        selected_agent_0_action = agent_0_action_list[agent_0_action_index]
+        # 只保留 selected_agent_0_action，删除其余 agent_0 动作
+        for key in list(actual_action_space.keys()):
+            if key.startswith('agent_0') and key != selected_agent_0_action:
+                del actual_action_space[key]
+    elif 'agent_0_discrete_move_forward' in original_action_space.spaces:
+        agent_0_action_list = ['agent_0_discrete_stop','agent_0_discrete_move_forward','agent_0_discrete_turn_left','agent_0_discrete_turn_right']
+        agent_0_action_index = int(action[0])
+        selected_agent_0_action = agent_0_action_list[agent_0_action_index]
+        # 只保留 selected_agent_0_action，删除其余 agent_0 动作
+        for key in list(actual_action_space.keys()):
+            if key.startswith('agent_0') and key != selected_agent_0_action:
+                del actual_action_space[key]
+    # Assume that the action space only has one root SimulatorTaskAction
+    root_action_names = tuple(actual_action_space.keys())
+    
+    if len(root_action_names) == 1:
+        # No need for a tuple if there is only one action
+        root_action_names = root_action_names[0]
+    action_name_to_lengths = {}
+    for outer_k, act_dict in actual_action_space.items():
+        if isinstance(act_dict, EmptySpace):
+            action_name_to_lengths[outer_k] = 1
+        else:
+            for k, v in act_dict.items():
+                # The only element in the action
+                action_name_to_lengths[k] = v.shape[0]
+
+    # Determine action arguments for root_action_name
+    action_args = {}
+    action_offset = 0
+    for action_name, action_length in action_name_to_lengths.items():
+        action_values = action[action_offset : action_offset + action_length]
+        action_args[action_name] = action_values
+        action_offset += action_length
+
+    action_dict = {
+        "action": root_action_names,
+        "action_args": action_args,
+    }
+
+    return action_dict
+
 
 class HabGymWrapper(gym.Wrapper):
     """
@@ -254,13 +309,13 @@ class HabGymWrapper(gym.Wrapper):
     def step(
         self, action: Union[np.ndarray, int]
     ) -> Tuple[HabGymWrapperObsType, float, bool, dict]:
-        assert self.action_space.contains(
-            action
-        ), f"Invalid action {action} for action space {self.action_space}"
+        # assert self.action_space.contains(
+        #     action
+        # ), f"Invalid action {action} for action space {self.action_space}"
 
         if isinstance(self.action_space, spaces.Box):
             assert isinstance(action, np.ndarray)
-            hab_action = continuous_vector_action_to_hab_dict(
+            hab_action = continuous_vector_action_to_hab_dict_v2(
                 self.original_action_space, self.action_space, action
             )
         else:
