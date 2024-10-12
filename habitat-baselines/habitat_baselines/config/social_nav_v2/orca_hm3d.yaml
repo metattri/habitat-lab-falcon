@@ -100,7 +100,7 @@ habitat_baselines:
   video_dir: "evaluation/orca/hm3d/video"
   test_episode_count: -1
   eval_ckpt_path_dir: "evaluation/orca/hm3d/checkpoints"
-  num_environments: 8
+  num_environments: 16
   checkpoint_folder: "evaluation/orca/hm3d/checkpoints"
   num_updates: -1
   total_num_steps: 1e8
@@ -117,7 +117,7 @@ habitat_baselines:
   eval:
     use_ckpt_config: False 
     should_load_ckpt: False
-    video_option: ["disk"]
+    # video_option: ["disk"]
 
   rl:
     agent:
