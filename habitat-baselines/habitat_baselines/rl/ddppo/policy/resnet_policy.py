@@ -446,7 +446,7 @@ class PointNavResNetNet(Net):
             }
             fuse_keys = [k for k in fuse_keys if k not in goal_sensor_keys]
         self._fuse_keys_1d: List[str] = [
-            k for k in fuse_keys if len(observation_space.spaces[k].shape) == 1
+            k for k in fuse_keys if len(observation_space.spaces[k].shape) == 1 and k != "human_num_sensor" and k != "localization_sensor"
         ]
         if len(self._fuse_keys_1d) != 0:
             rnn_input_size += sum(
