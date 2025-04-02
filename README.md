@@ -160,9 +160,27 @@ python -u -m habitat-baselines.habitat_baselines.run \
 habitat_baselines.eval.video_option=["disk"]
 ```
 
-### Two RL-based methods (Proximity & *Falcon(ours)*)
+### RL-based methods Proximity
 
-**TODO: this section is work in progress.** The code of Proximity can be found in this [link](https://github.com/EnricoCancelli/ProximitySocialNav).
+The code of Proximity can be found in this [link](https://github.com/EnricoCancelli/ProximitySocialNav).
+
+### Falcon (ours)
+
+The pretrained models can be found in [this link](https://drive.google.com/drive/folders/1Bx1L9U345P_9pUfADk3Tnj7uK01EpxZY?usp=sharing). Download it to the root directory.
+
+You can evaluate it on the Social-HM3D or Social-MP3D datasets using the following template:
+
+```
+python -u -m habitat-baselines.habitat_baselines.run \
+--config-name=social_nav_v2/falcon_<dataset>.yaml
+```
+
+For example, to run it on the Social-HM3D dataset:
+
+```
+python -u -m habitat-baselines.habitat_baselines.run \
+--config-name=social_nav_v2/falcon_hm3d.yaml
+```
 
 ## :black_nib: Citation
 
