@@ -24,8 +24,6 @@ defaults:
   - _self_
 
 habitat:
-  dataset:
-    split: train
   gym:
     obs_keys: 
       - agent_0_articulated_agent_jaw_depth

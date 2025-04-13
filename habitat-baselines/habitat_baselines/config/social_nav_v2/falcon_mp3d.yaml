@@ -88,7 +88,7 @@ habitat:
         allow_dyn_slide: True
 habitat_baselines:
   evaluate: True
-  verbose: False
+  verbose: True
   trainer_name: "ddppo"
   torch_gpu_id: 0
   tensorboard_dir: "evaluation/falcon/mp3d/tb_20250328"

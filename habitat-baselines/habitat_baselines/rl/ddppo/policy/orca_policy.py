@@ -102,7 +102,7 @@ class ORCAPolicy(nn.Module, Policy):
 
     @property
     def num_recurrent_layers(self):
-        return 2
+        return 2 # (0)
 
     @property
     def should_load_agent_state(self):

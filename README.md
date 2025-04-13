@@ -182,6 +182,17 @@ python -u -m habitat-baselines.habitat_baselines.run \
 --config-name=social_nav_v2/falcon_hm3d.yaml
 ```
 
+## :rocket: Training
+
+For reproduce our training, use:
+
+```
+python -u -m habitat-baselines.habitat_baselines.run \
+--config-name=social_nav_v2/falcon_hm3d_train.yaml
+```
+
+The training was performed using **4x NVIDIA RTX 3090 GPUs**, and it took approximately **2 days**. 
+
 ## :black_nib: Citation
 
 If you find this repository useful in your research, please consider citing our paper:
