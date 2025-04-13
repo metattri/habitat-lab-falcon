@@ -184,14 +184,20 @@ python -u -m habitat-baselines.habitat_baselines.run \
 
 ## :rocket: Training
 
-For reproduce our training, use:
+To reproduce our training, use the following command for single-gpu setup:
 
 ```
 python -u -m habitat-baselines.habitat_baselines.run \
 --config-name=social_nav_v2/falcon_hm3d_train.yaml
 ```
 
-The training was performed using **4x NVIDIA RTX 3090 GPUs**, and it took approximately **2 days**. 
+for multi-gpu training, use:
+
+```
+sh habitat-baselines/habitat_baselines/rl/ddppo/single_node_falcon.sh
+```
+
+Note: The training was performed using **4x NVIDIA RTX 3090 GPUs**, and it took approximately **2 days**. 
 
 ## :black_nib: Citation
 

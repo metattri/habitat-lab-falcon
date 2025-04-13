@@ -21,5 +21,5 @@ set -x
     --use_env \
     --nproc_per_node $TOTAL_GPU \
     habitat-baselines/habitat_baselines/run.py \
-    --config-name=social_nav_v2/falcon_hm3d.yaml \
+    --config-name=social_nav_v2/falcon_hm3d_train.yaml \
     > evaluation/falcon/hm3d/train.log 2>&1
