@@ -3,7 +3,7 @@
   <h3>
     <a href="https://zeying-gong.github.io/">Zeying Gong</a>,
     <a href="https://hutslib.github.io/">Tianshuai Hu</a>,
-    <a href="https://precognition.team/">Ronghe Qiu</a>,
+    <a href="https://openreview.net/profile?id=~Ronghe_Qiu2">Ronghe Qiu</a>,
     <a href="https://junweiliang.me/">Junwei Liang</a>
   </h3>
 
@@ -207,13 +207,18 @@ Note: The training was performed using **4x NVIDIA RTX 3090 GPUs**, and it took 
 If you find this repository useful in your research, please consider citing our paper:
 
 ```
-@misc{gong2024cognitionprecognitionfutureawareframework,
+@article{gong2024cognition,
   title={From Cognition to Precognition: A Future-Aware Framework for Social Navigation},
-  author={Zeying Gong and Tianshuai Hu and Ronghe Qiu and Junwei Liang},
-  year={2024},
-  eprint={2409.13244},
-  archivePrefix={arXiv},
-  primaryClass={cs.RO},
-  url={https://arxiv.org/abs/2409.13244},
+  author={Gong, Zeying and Hu, Tianshuai and Qiu, Ronghe and Liang, Junwei},
+  journal={arXiv preprint arXiv:2409.13244},
+  year={2024}
 }
 ```
+
+## 	:pray: Acknowledgments
+
+We would like to thank the following repositories for their contributions:
+- [Proximity](https://github.com/EnricoCancelli/ProximitySocialNav)
+- [VLFM](https://github.com/bdaiinstitute/vlfm/tree/main)
+- [Habitat-Lab](https://github.com/facebookresearch/habitat-lab)
+- [Habitat-Sim](https://github.com/facebookresearch/habitat-sim)
