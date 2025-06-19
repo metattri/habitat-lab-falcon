@@ -2,7 +2,7 @@
 
 defaults:
   - /habitat: habitat_config_base
-  - /habitat/task: falcon_task_detail
+  - /habitat/task: socialnav_task_detail # get rid of aux info compared to training
   - /habitat/simulator/sensor_setups@habitat.simulator.agents.agent_0: spot_agent
   - /habitat/simulator/agents@habitat.simulator.agents.agent_0: spot
   - /habitat/simulator/agents@habitat.simulator.agents.agent_1: human_1
@@ -31,6 +31,22 @@ habitat:
     agents:
       agent_0:
         sim_sensors:
+          # jaw_rgb_sensor:
+          #   type: HabitatSimRGBSensor
+          #   height: 256
+          #   width: 256
+          #   position:
+          #   - 0.0
+          #   - 1.25
+          #   - 0.0
+          #   orientation:
+          #   - 0.0
+          #   - 0.0
+          #   - 0.0
+          #   hfov: 90
+          #   sensor_subtype: PINHOLE
+          #   noise_model: None
+          #   noise_model_kwargs: {}
           jaw_depth_sensor:
             height: 256
             width: 256
@@ -49,8 +65,8 @@ habitat:
             min_depth: 0.0
             max_depth: 10.0
             normalize_depth: true
-    kinematic_mode: True 
+    kinematic_mode: True
     habitat_sim_v0:
       gpu_device_id: 0
-      allow_sliding: True 
-      enable_physics: True  
+      allow_sliding: True
+      enable_physics: True 

@@ -26,6 +26,7 @@ from habitat_baselines.utils.common import (
 )
 from habitat_baselines.utils.info_dict import extract_scalars_from_info
 
+import json
 
 class FALCONEvaluator(Evaluator):
     """
@@ -123,6 +124,7 @@ class FALCONEvaluator(Evaluator):
         ), "You must specify a number of evaluation episodes with test_episode_count"
 
         pbar = tqdm.tqdm(total=number_of_eval_episodes * evals_per_ep)
+        actions_record = defaultdict(list)
         agent.eval()
         while (
             len(stats_episodes) < (number_of_eval_episodes * evals_per_ep)
@@ -179,6 +181,30 @@ class FALCONEvaluator(Evaluator):
             observations, rewards_l, dones, infos = [
                 list(x) for x in zip(*outputs)
             ]
+
+            for i in range(envs.num_envs):
+                episode_key = (
+                    current_episodes_info[i].scene_id,
+                    current_episodes_info[i].episode_id,
+                    ep_eval_count[
+                        (current_episodes_info[i].scene_id, current_episodes_info[i].episode_id)
+                    ]
+                )
+
+                action_value = step_data[i]
+                if isinstance(action_value, np.ndarray):
+                    stored_action = {
+                        "type": "array",
+                        "value": action_value.tolist()
+                    }
+                else:
+                    stored_action = {
+                        "type": "array",
+                        "value": np.array(action_value).tolist()
+                    }
+
+                actions_record[episode_key].append(stored_action)
+
             # Note that `policy_infos` represents the information about the
             # action BEFORE `observations` (the action used to transition to
             # `observations`).
@@ -265,6 +291,10 @@ class FALCONEvaluator(Evaluator):
                     stats_episodes[(k, ep_eval_count[k])] = episode_stats
 
                     if len(config.habitat_baselines.eval.video_option) > 0:
+                        # show scene and episode
+                        scene_id = current_episodes_info[i].scene_id.split('/')[-1].split('.')[0]
+                        print(f"This is Scene ID: {scene_id}, Episode ID: {current_episodes_info[i].episode_id}.") # for debug
+                        
                         generate_video(
                             video_option=config.habitat_baselines.eval.video_option,
                             video_dir=config.habitat_baselines.video_dir,
@@ -341,3 +371,32 @@ class FALCONEvaluator(Evaluator):
         metrics = {k: v for k, v in aggregated_stats.items() if k != "reward"}
         for k, v in metrics.items():
             writer.add_scalar(f"eval_metrics/{k}", v, step_id)
+
+        # ==== 保存 result.json ====
+        result_path = os.path.join("output/", "result.json")
+        os.makedirs(os.path.dirname(result_path), exist_ok=True)
+        evalai_result = {
+                            "SR": round(aggregated_stats.get("success", 0), 4),
+                            "SPL": round(aggregated_stats.get("spl", 0), 4),
+                            "PSC": round(aggregated_stats.get("psc", 0), 4),
+                            "H-Coll": round(aggregated_stats.get("human_collision", 0), 4),
+                            "Total": round(
+                                0.4 * aggregated_stats.get("success", 0)
+                                + 0.3 * aggregated_stats.get("spl", 0)
+                                + 0.3 * aggregated_stats.get("psc", 0),
+                                4,
+                                    ),
+                        }
+
+        with open(result_path, "w") as f:
+            json.dump(evalai_result, f, indent=2)
+
+        # ==== 保存 actions.json ====
+        actions_output_path = os.path.join("output/", "actions.json")
+        os.makedirs(os.path.dirname(actions_output_path), exist_ok=True)
+        serializable_actions = {
+            f"{scene_id}|{episode_id}|{eval_count}": actions
+            for (scene_id, episode_id, eval_count), actions in actions_record.items()
+        }
+        with open(actions_output_path, "w") as f:
+            json.dump(serializable_actions, f, indent=2)

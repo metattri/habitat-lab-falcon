@@ -24,15 +24,14 @@ defaults:
   - _self_
 
 habitat:
-  dataset:
-    split: train
+  environment:
+    iterator_options:
+      shuffle: False # keep the same order
   gym:
     obs_keys: 
+      # - agent_0_articulated_agent_jaw_rgb # use it if add RGB camera
       - agent_0_articulated_agent_jaw_depth
       - agent_0_pointgoal_with_gps_compass
-      - agent_0_localization_sensor
-      - agent_0_human_num_sensor  
-      - agent_0_oracle_humanoid_future_trajectory    
   task:
     actions:
       agent_0_discrete_stop:
@@ -91,10 +90,10 @@ habitat_baselines:
   verbose: True
   trainer_name: "ddppo"
   torch_gpu_id: 0
-  tensorboard_dir: "evaluation/falcon/mp3d/tb_20250328"
-  video_dir: "evaluation/falcon/mp3d/video_20250328"
+  tensorboard_dir: "evaluation/falcon/mp3d/tb"
+  video_dir: "evaluation/falcon/mp3d/video"
   test_episode_count: -1
-  eval_ckpt_path_dir: "pretrained_model/falcon_pretrained_25.pth"
+  eval_ckpt_path_dir: "pretrained_model/falcon_noaux_25.pth"
   num_environments: 8
   checkpoint_folder: "evaluation/falcon/mp3d/checkpoints"
   num_updates: -1
@@ -107,7 +106,7 @@ habitat_baselines:
   load_resume_state_config: False
 
   evaluator:
-    _target_: habitat_baselines.rl.ppo.orca_evaluator.ORCAEvaluator # record the success rate each step
+    _target_: habitat_baselines.rl.ppo.falcon_evaluator.FALCONEvaluator
 
   eval:
     use_ckpt_config: False 
@@ -171,16 +170,3 @@ habitat_baselines:
       backbone: resnet50
       rnn_type: LSTM
       num_recurrent_layers: 2
-
-    auxiliary_losses: 
-      people_counting:
-        max_human_num: 6
-        loss_scale: 0.1   
-      guess_human_position:
-        max_human_num: 6
-        position_dim: 2
-        loss_scale: 0.1   
-      future_trajectory_prediction:
-        max_human_num: 6
-        future_step: 4
-        loss_scale: 0.1        

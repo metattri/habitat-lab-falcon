@@ -28,6 +28,7 @@ habitat:
     split: train
   gym:
     obs_keys: 
+      # - agent_0_articulated_agent_jaw_rgb # use it if add RGB camera
       - agent_0_articulated_agent_jaw_depth
       - agent_0_pointgoal_with_gps_compass
       - agent_0_localization_sensor
@@ -106,7 +107,7 @@ habitat_baselines:
   load_resume_state_config: False
 
   evaluator:
-    _target_: habitat_baselines.rl.ppo.orca_evaluator.ORCAEvaluator
+    _target_: habitat_baselines.rl.ppo.falcon_evaluator.FALCONEvaluator
 
   eval:
     use_ckpt_config: False 

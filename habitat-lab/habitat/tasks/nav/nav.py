@@ -899,7 +899,7 @@ class TopDownMap(Measure):
             (self._top_down_map.shape[0], self._top_down_map.shape[1]),
             sim=self._sim,
         )
-        if (a_x < self._top_down_map.shape[0] and a_x >= 0) and (a_y < self._top_down_map.shape[0] and a_y >= 0):
+        if (a_x < self._top_down_map.shape[0] and a_x >= 0) and (a_y < self._top_down_map.shape[1] and a_y >= 0): # might be a typo here
             pass
         else:
             return a_x, a_y

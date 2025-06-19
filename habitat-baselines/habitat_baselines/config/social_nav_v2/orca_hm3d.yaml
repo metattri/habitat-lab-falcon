@@ -24,8 +24,9 @@ defaults:
   - _self_
 
 habitat:
-  dataset:
-    split: train
+  environment:
+    iterator_options:
+      shuffle: False # keep the same order
   gym:
     obs_keys: 
       - agent_0_articulated_agent_jaw_depth
