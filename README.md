@@ -92,7 +92,7 @@ unzip -d data/datasets/pointnav
 - Download Leg animation
 
 ```
-wget https://github.com/facebookresearch/habitat-lab/files/12502177/spot_walking_trajectory.csv > data/robots/spot-data/spot_walking_trajectory.csv
+wget https://github.com/facebookresearch/habitat-lab/files/12502177/spot_walking_trajectory.csv -O data/robots/spot_data/spot_walking_trajectory.csv
 ```
 
 - Download Multi-agent necessary data
