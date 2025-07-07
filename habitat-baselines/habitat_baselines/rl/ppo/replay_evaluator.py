@@ -323,7 +323,7 @@ class FALCONReplayEvaluator(Evaluator):
             writer.add_scalar(f"eval_metrics/{k}", v, step_id)
 
         # 保存result.json
-        result_path = os.path.join("output/", "result_replay.json")
+        result_path = os.path.join("output/", "result.json")
         os.makedirs(os.path.dirname(result_path), exist_ok=True)
         evalai_result = {
             "SR": round(aggregated_stats.get("success", 0), 4),

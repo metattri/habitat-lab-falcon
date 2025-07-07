@@ -66,7 +66,7 @@ conda install habitat-sim=0.3.1 withbullet headless -c conda-forge -c aihabitat
 
 If you encounter network problems, you can manually download the Conda package from [this link](https://anaconda.org/aihabitat/habitat-sim/0.3.1/download/linux-64/habitat-sim-0.3.1-py3.9_headless_bullet_linux_3d6d67d6deae4ab2472cc84df7a3cef1503f606d.tar.bz2) to download the conda bag, and install it via: `conda install --use-local /path/to/xxx.tar.bz2` to download.
 
-Then, assuming you have [this repositories](https://github.com/Zeying-Gong/habitat-lab) cloned (forked from Habitat 3.0), install necessary dependencies of Habitat.
+Then, assuming you have this repositories cloned (forked from Habitat 3.0), install necessary dependencies of Habitat.
 ```
 git clone https://github.com/Zeying-Gong/Falcon.git
 cd Falcon

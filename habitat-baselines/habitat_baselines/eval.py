@@ -36,10 +36,73 @@ register_hydra_plugin(HabitatConfigPlugin)
     config_path="config",
     config_name="pointnav/ppo_pointnav_example",
 )
+
 def main(cfg: "DictConfig"):
     cfg = patch_config(cfg)
-    execute_exp(cfg, "eval")
 
+    # ========== ① 强制修改配置 ==========
+    if cfg.habitat_baselines.evaluate != True:
+        raise ValueError(
+            f"[ERROR] habitat_baselines.evaluate must be True, but got {cfg.habitat_baselines.evaluate}"
+        )
+
+    if cfg.habitat.seed != 100:
+        raise ValueError(
+            f"[ERROR] habitat.seed must be 100, but got {cfg.habitat.seed}"
+        )
+
+    if len(cfg.habitat_baselines.eval.video_option) != 0:
+        raise ValueError(
+            f"[ERROR] habitat_baselines.eval.video_option must be [''], but got {cfg.habitat_baselines.eval.video_option}"
+        )
+    if cfg.habitat_baselines.num_environments != 8:
+        raise ValueError(
+            f"[ERROR] habitat_baselines.num_environments must be 8, but got {cfg.habitat_baselines.num_environments}"
+        )
+    
+    # ========== ② obs_keys 严格校验 ==========
+    allowed_obs_keys = [
+        "agent_0_articulated_agent_jaw_rgb",
+        "agent_0_articulated_agent_jaw_depth",
+        "agent_0_pointgoal_with_gps_compass"
+    ]
+    obs_keys = cfg.habitat.gym.obs_keys
+    invalid_obs_keys = set(obs_keys) - set(allowed_obs_keys)
+    if invalid_obs_keys:
+        raise ValueError(
+            f"[obs_keys ERROR] Invalid obs_keys detected: {invalid_obs_keys}. "
+            f"Only allowed keys are: {allowed_obs_keys}."
+        )
+
+    # ========== ③ task.type 强制值 ==========
+    must_be_task_type = "MultiAgentPointNavTask-v0"
+    if cfg.habitat.task.type != must_be_task_type:
+        raise ValueError(
+            f"[task.type ERROR] habitat.task.type must be '{must_be_task_type}', "
+            f"but got '{cfg.habitat.task.type}'."
+        )
+
+    # ========== ④ measurements key 严格校验 ==========
+    allowed_measurements = [
+        "distance_to_goal",
+        "distance_to_goal_reward",
+        "success",
+        "did_multi_agents_collide",
+        "num_steps",
+        "top_down_map",
+        "spl",
+        "psc",
+        "human_collision",
+    ]
+    measurement_keys = list(cfg.habitat.task.measurements.keys())
+    invalid_measurements = set(measurement_keys) - set(allowed_measurements)
+    if invalid_measurements:
+        raise ValueError(
+            f"[measurements ERROR] Invalid measurements detected: {invalid_measurements}. "
+            f"Only allowed measurements are: {allowed_measurements}."
+        )
+
+    execute_exp(cfg, "eval")
 
 def execute_exp(config: "DictConfig", run_type: str) -> None:
     r"""This function runs the specified config with the specified runtype
