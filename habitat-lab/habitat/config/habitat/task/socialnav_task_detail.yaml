@@ -16,6 +16,6 @@ type: MultiAgentPointNavTask-v0
 end_on_success: True
 reward_measure: "distance_to_goal_reward" # get rid of aux info
 success_measure: "spl"
-success_reward: 10.0
-slack_reward: -0.002
+# success_reward: 10.0
+# slack_reward: -0.002
 goal_sensor_uuid: pointgoal_with_gps_compass

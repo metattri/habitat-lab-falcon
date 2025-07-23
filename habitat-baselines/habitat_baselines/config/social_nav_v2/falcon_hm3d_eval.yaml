@@ -88,17 +88,18 @@ habitat:
         ang_speed: 10.0
         allow_dyn_slide: True
 habitat_baselines:
-  evaluate: False # True
+  evaluate: True
   verbose: True
-  trainer_name: "falcon_trainer" ## original ppo works for self._agent, but we need to train self._agent._agents[0]
+  trainer_name: "ddppo"
   torch_gpu_id: 0
-  tensorboard_dir: "evaluation/falcon/hm3d/tb"
-  video_dir: "evaluation/falcon/hm3d/video"
+  tensorboard_dir: "evaluation/falcon/hm3d_v2/tb"
+  video_dir: "evaluation/falcon/hm3d_v2/video"
   test_episode_count: -1
   num_environments: 8
-  checkpoint_folder: "evaluation/falcon/hm3d/checkpoints" # save_dir for training
+  checkpoint_folder: "evaluation/falcon/hm3d_v2/checkpoints" # save_dir for training
+  eval_ckpt_path_dir: "evaluation/falcon/hm3d_v2/checkpoints"
   num_updates: -1
-  total_num_steps: 15000000 # exact steps 12560368
+  total_num_steps: 12560368 # exact steps
   log_interval: 10
   num_checkpoints: 20 # interrupt recovery
   # Force PyTorch to be single threaded as
@@ -112,7 +113,7 @@ habitat_baselines:
   eval:
     use_ckpt_config: False 
     should_load_ckpt: True
-
+    video_option: ["disk"]
   rl:
     agent:
       type: "MultiAgentAccessMgr"
@@ -164,7 +165,7 @@ habitat_baselines:
       # Whether the visual encoder backbone will be trained.
       train_encoder: True
       # Whether to reset the critic linear layer
-      reset_critic: True
+      reset_critic: False # True
 
       # Model parameters
       backbone: resnet50

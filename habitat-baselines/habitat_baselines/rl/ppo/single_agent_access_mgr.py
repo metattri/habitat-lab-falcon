@@ -243,7 +243,7 @@ class SingleAgentAccessMgr(AgentAccessMgr):
                     if k.startswith(prefix)
                 }
             )
-        if self._is_static_encoder:
+        if self._is_static_encoder and actor_critic.visual_encoder is not None:
             for param in actor_critic.visual_encoder.parameters():
                 param.requires_grad_(False)
 

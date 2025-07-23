@@ -15,6 +15,7 @@ from habitat_baselines.il.trainers.vqa_trainer import VQATrainer
 from habitat_baselines.rl.ppo.ppo_trainer import PPOTrainer
 from habitat_baselines.rl.ver.ver_trainer import VERTrainer
 from habitat_baselines.rl.ppo.orca_trainer import ORCANoTrainer
+from habitat_baselines.rl.ppo.falcon_trainer import FalconTrainer
 from habitat_baselines.version import VERSION as __version__  # noqa: F401
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     "BaseRLTrainer",
     "BaseILTrainer",
     "PPOTrainer",
+    "FalconTrainer",
     "RolloutStorage",
     "EQACNNPretrainTrainer",
     "PACMANTrainer",
