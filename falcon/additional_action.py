@@ -50,8 +50,28 @@ class DiscreteStopAction(BaseVelAction):
         return EmptySpace()
     
     def step(self, *args, **kwargs):
-        kwargs['task'].is_stop_called = True  # type: ignore
-        # kwargs['task'].should_end = True  # type: ignore
+        kwargs['task'].is_stop_called = True  
+        kwargs['task'].should_end = True  # let episode terminate when call stop, might accelerate training
+        self.base_vel_ctrl.linear_velocity = mn.Vector3(0.0, 0, 0)
+        self.base_vel_ctrl.angular_velocity = mn.Vector3(0, 0.0, 0)
+
+@registry.register_task_action
+class DiscretePauseAction(BaseVelAction):
+    def __init__(self, *args, config, sim: RearrangeSim, **kwargs):
+        super().__init__(*args, config=config, sim=sim, **kwargs)
+        self._checkpoint = self._config.get("leg_animation_checkpoint")
+        self._use_range = self._config.get("use_range")
+        assert os.path.exists(self._checkpoint) == 1
+        self._leg_data = {}  # type: ignore
+        kwargs['task'].is_stop_called = False
+        
+    @property
+    def action_space(self):
+        return EmptySpace()
+    
+    def step(self, *args, **kwargs):
+        kwargs['task'].is_stop_called = False
+        kwargs['task'].should_end = False
         self.base_vel_ctrl.linear_velocity = mn.Vector3(0.0, 0, 0)
         self.base_vel_ctrl.angular_velocity = mn.Vector3(0, 0.0, 0)
 
@@ -107,6 +127,64 @@ class DiscreteMoveForwardAction(BaseVelAction):
         else:
             play_i = 0
             # Fix the leg joints
+            self.cur_articulated_agent.leg_joint_pos = (
+                self.cur_articulated_agent.params.leg_init_params
+            )
+
+@registry.register_task_action
+class DiscreteMoveBackwardAction(BaseVelAction):
+    def __init__(self, *args, config, sim: RearrangeSim, **kwargs):
+        super().__init__(*args, config=config, sim=sim, **kwargs)
+        self._checkpoint = self._config.get("leg_animation_checkpoint")
+        self._use_range = self._config.get("use_range")
+        assert os.path.exists(self._checkpoint), f"Checkpoint not found: {self._checkpoint}"
+        self._leg_data = {}  # type: ignore
+        self._load_animation()
+
+        self._play_length_data = len(self._leg_data)
+        self._play_i_perframe = self._config.get("play_i_perframe")
+        self.lin_vel = config['lin_speed']
+        self.ang_vel = config['ang_speed']
+
+    def _load_animation(self):
+        first_row = True
+        time_i = 0
+        with open(self._checkpoint, newline="") as csvfile:
+            spamreader = csv.reader(csvfile, delimiter=" ", quotechar="|")
+            for row in spamreader:
+                if not first_row:
+                    if (
+                        time_i >= self._use_range[0]
+                        and time_i < self._use_range[1]
+                    ):
+                        joint_angs = row[0].split(",")[1:13]
+                        joint_angs = [float(i) for i in joint_angs]
+                        self._leg_data[
+                            time_i - self._use_range[0]
+                        ] = joint_angs
+                    time_i += 1
+                first_row = False
+
+    @property
+    def action_space(self):
+        return EmptySpace()
+
+    def step(self, *args, **kwargs):
+        global play_i
+
+        lin_vel = -self.lin_vel 
+        ang_vel = self.ang_vel  
+
+        self.base_vel_ctrl.linear_velocity = mn.Vector3(lin_vel, 0, 0)
+        self.base_vel_ctrl.angular_velocity = mn.Vector3(0, ang_vel, 0)
+
+        if lin_vel != 0.0 or ang_vel != 0.0:
+            self.update_base(fix_leg=False)
+            cur_i = int(play_i % self._play_length_data)
+            self.cur_articulated_agent.leg_joint_pos = self._leg_data[cur_i]
+            play_i += self._play_i_perframe
+        else:
+            play_i = 0
             self.cur_articulated_agent.leg_joint_pos = (
                 self.cur_articulated_agent.params.leg_init_params
             )
@@ -917,8 +995,36 @@ class DiscreteStopActionConfig(ActionConfig):
     use_range: Optional[List[int]] = field(default_factory=lambda: [107, 863])
 
 @dataclass
+class DiscretePauseActionConfig(ActionConfig):
+    type: str = "DiscretePauseAction"
+    lin_speed: float = 0.0
+    ang_speed: float = 0.0 
+    allow_back: bool = False
+    value: int = 1
+    allow_dyn_slide: bool = False # True
+    leg_animation_checkpoint: str = (
+        "data/robots/spot_data/spot_walking_trajectory.csv"
+    )
+    play_i_perframe: int = 5
+    use_range: Optional[List[int]] = field(default_factory=lambda: [107, 863])
+
+@dataclass
 class DiscreteMoveForwardActionConfig(ActionConfig):
     type: str = "DiscreteMoveForwardAction"
+    lin_speed: float = 10.0
+    ang_speed: float = 0.0 
+    allow_back: bool = False
+    value: int = 1
+    allow_dyn_slide: bool = False # True
+    leg_animation_checkpoint: str = (
+        "data/robots/spot_data/spot_walking_trajectory.csv"
+    )
+    play_i_perframe: int = 5
+    use_range: Optional[List[int]] = field(default_factory=lambda: [107, 863])
+
+@dataclass
+class DiscreteMoveBackwardActionConfig(ActionConfig):
+    type: str = "DiscreteMoveBackwardAction"
     lin_speed: float = 10.0
     ang_speed: float = 0.0 
     allow_back: bool = False
@@ -987,27 +1093,41 @@ class OracleNavActionWOPDDLConfig(ActionConfig):
 
 cs = ConfigStore.instance()
 
-cs.store( ##
+cs.store( 
     package="habitat.task.actions.discrete_stop",
     group="habitat/task/actions",
     name="discrete_stop",
     node=DiscreteStopActionConfig,
 )
 
-cs.store( ##
+cs.store( 
+    package="habitat.task.actions.discrete_pause",
+    group="habitat/task/actions",
+    name="discrete_pause",
+    node=DiscretePauseActionConfig,
+)
+
+cs.store( 
     package="habitat.task.actions.discrete_move_forward",
     group="habitat/task/actions",
     name="discrete_move_forward",
     node=DiscreteMoveForwardActionConfig,
 )
 
-cs.store( ##
+cs.store( 
+    package="habitat.task.actions.discrete_move_backward",
+    group="habitat/task/actions",
+    name="discrete_move_backward",
+    node=DiscreteMoveBackwardActionConfig,
+)
+
+cs.store( 
     package="habitat.task.actions.discrete_turn_left",
     group="habitat/task/actions",
     name="discrete_turn_left",
     node=DiscreteTurnLeftActionConfig,
 )
-cs.store( ##
+cs.store( 
     package="habitat.task.actions.discrete_turn_right",
     group="habitat/task/actions",
     name="discrete_turn_right",

@@ -40,7 +40,7 @@ register_hydra_plugin(HabitatConfigPlugin)
 def main(cfg: "DictConfig"):
     cfg = patch_config(cfg)
 
-    # ========== ① 强制修改配置 ==========
+    # ========== ① Force configuration values ==========
     if cfg.habitat_baselines.evaluate != True:
         raise ValueError(
             f"[ERROR] habitat_baselines.evaluate must be True, but got {cfg.habitat_baselines.evaluate}"
@@ -55,12 +55,11 @@ def main(cfg: "DictConfig"):
         raise ValueError(
             f"[ERROR] habitat_baselines.eval.video_option must be [''], but got {cfg.habitat_baselines.eval.video_option}"
         )
-    if cfg.habitat_baselines.num_environments != 8:
-        raise ValueError(
-            f"[ERROR] habitat_baselines.num_environments must be 8, but got {cfg.habitat_baselines.num_environments}"
-        )
     
-    # ========== ② obs_keys 严格校验 ==========
+    if cfg.habitat.environment.iterator_options.shuffle != False:
+        cfg.habitat.environment.iterator_options.shuffle = False
+    
+    # ========== ② Strict validation of observation keys ==========
     allowed_obs_keys = [
         "agent_0_articulated_agent_jaw_rgb",
         "agent_0_articulated_agent_jaw_depth",
@@ -74,7 +73,7 @@ def main(cfg: "DictConfig"):
             f"Only allowed keys are: {allowed_obs_keys}."
         )
 
-    # ========== ③ task.type 强制值 ==========
+    # ========== ③ Force task type ==========
     must_be_task_type = "MultiAgentPointNavTask-v0"
     if cfg.habitat.task.type != must_be_task_type:
         raise ValueError(
@@ -82,7 +81,7 @@ def main(cfg: "DictConfig"):
             f"but got '{cfg.habitat.task.type}'."
         )
 
-    # ========== ④ measurements key 严格校验 ==========
+    # ========== ④ Strict validation of measurements keys ==========
     allowed_measurements = [
         "distance_to_goal",
         "distance_to_goal_reward",
@@ -100,6 +99,15 @@ def main(cfg: "DictConfig"):
         raise ValueError(
             f"[measurements ERROR] Invalid measurements detected: {invalid_measurements}. "
             f"Only allowed measurements are: {allowed_measurements}."
+        )
+
+    # ========== ⑤ Environment count constraint ==========
+    # The number of environments can be set by the user, but must not exceed 8.
+    # Single-environment execution (e.g., 1) is allowed for debugging or lightweight runs.
+    # This provides flexibility while ensuring resource usage stays within limits.
+    if cfg.habitat_baselines.num_environments > 8:
+        raise ValueError(
+            f"[ERROR] habitat_baselines.num_environments must be <= 8, but got {cfg.habitat_baselines.num_environments}"
         )
 
     execute_exp(cfg, "eval")

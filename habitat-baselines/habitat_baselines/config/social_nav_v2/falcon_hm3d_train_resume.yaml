@@ -92,11 +92,12 @@ habitat_baselines:
   verbose: True
   trainer_name: "falcon_trainer" ## original ppo works for self._agent, but we need to train self._agent._agents[0]
   torch_gpu_id: 0
-  tensorboard_dir: "evaluation/falcon/hm3d/tb"
-  video_dir: "evaluation/falcon/hm3d/video"
+  tensorboard_dir: "evaluation/falcon/hm3d_v2/tb"
+  video_dir: "evaluation/falcon/hm3d_v2/video"
   test_episode_count: -1
   num_environments: 8
-  checkpoint_folder: "evaluation/falcon/hm3d/checkpoints" # save_dir for training
+  checkpoint_folder: "evaluation/falcon/hm3d_v2/ckpt" # save_dir for training
+  eval_ckpt_path_dir: "evaluation/falcon/hm3d_v2/ckpt"
   num_updates: -1
   total_num_steps: 15000000 # exact steps 12560368
   log_interval: 10

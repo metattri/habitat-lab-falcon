@@ -102,30 +102,31 @@ python -m habitat_sim.utils.datasets_download --uids hab3-episodes habitat_human
 ```
 
 The file structure should look like this:
-```
-data
-├── datasets
-│   └── pointnav
-│       ├── social-hm3d
-│       │   ├── train
-│       │   │   ├── content
-│       │   │   └── train.json.gz
-│       │   └── val
-│       │       ├── content
-│       │       └── val.json.gz
-│       └── social-mp3d
-│           ├── train
-│           │   ├── content
-│           │   └── train.json.gz
-│           └── val
-│               ├── content
-│               └── val.json.gz
-└── scene_datasets
-└── robots
-└── humanoids
-└── versoned_data
-└── hab3_bench_assets
 
+```
+Falcon/
+└── data/
+    ├── datasets
+    │   └── pointnav
+    │       ├── social-hm3d
+    │       │   ├── train
+    │       │   │   ├── content
+    │       │   │   └── train.json.gz
+    │       │   └── val
+    │       │       ├── content
+    │       │       └── val.json.gz
+    │       └── social-mp3d
+    │           ├── train
+    │           │   ├── content
+    │           │   └── train.json.gz
+    │           └── val
+    │               ├── content
+    │               └── val.json.gz
+    ├── scene_datasets
+    ├── robots
+    ├── humanoids
+    ├── versoned_data
+    └── hab3_bench_assets
 ```
 
 Note that here the definition of SocialNav is different from the original task in [Habitat 3.0](https://arxiv.org/abs/2310.13724).

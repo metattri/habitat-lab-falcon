@@ -337,8 +337,21 @@ class MultiAgentAccessMgr(AgentAccessMgr):
         for agent_i, agent in enumerate(self._agents):
             if not agent.actor_critic.should_load_agent_state:
                 continue
-            # agent.load_state_dict(state[str(agent_i)]) # strange setup
-            agent.load_state_dict(state[agent_i])
+
+            # Attempt to load state using the integer key first.
+            try:
+                agent.load_state_dict(state[agent_i])
+            except KeyError:
+                # If the integer key is not found, try using the string representation of the integer.
+                try:
+                    agent.load_state_dict(state[str(agent_i)])
+                except KeyError as e:
+                    # If neither key type is found, raise a more informative error.
+                    raise KeyError(
+                        f"Could not find state for agent {agent_i} in the state dictionary. "
+                        f"Attempted integer key '{agent_i}' and string key '{str(agent_i)}'. "
+                        f"Existing keys: {state.keys()}"
+                    ) from e
 
     def load_ckpt_state_dict(self, ckpt):
         for agent in self._agents:
