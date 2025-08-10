@@ -56,9 +56,6 @@ def main(cfg: "DictConfig"):
             f"[ERROR] habitat_baselines.eval.video_option must be [''], but got {cfg.habitat_baselines.eval.video_option}"
         )
     
-    if cfg.habitat.environment.iterator_options.shuffle != False:
-        cfg.habitat.environment.iterator_options.shuffle = False
-    
     # ========== ② Strict validation of observation keys ==========
     allowed_obs_keys = [
         "agent_0_articulated_agent_jaw_rgb",
