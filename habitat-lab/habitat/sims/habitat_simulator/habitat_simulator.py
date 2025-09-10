@@ -79,6 +79,38 @@ def overwrite_config(
     for attr, value in config_from.items():
         assert isinstance(attr, str)
         low_attr = attr.lower()
+        if isinstance(config_to, habitat_sim.AudioSensorSpec):
+            # Special handling for audio sensor configurations
+            if attr == "acousticsConfig":
+                acoustics_config = habitat_sim.RLRAudioPropagationConfiguration()
+                for sub_attr, sub_value in value.items():
+                    if hasattr(acoustics_config, sub_attr):
+                        setattr(acoustics_config, sub_attr, sub_value)
+                setattr(config_to, attr, acoustics_config)
+                continue
+            elif attr == "channelLayout":
+                channel_layout = habitat_sim.RLRAudioPropagationChannelLayout()
+                for sub_attr, sub_value in value.items():
+                    if sub_attr == "channelType" and isinstance(sub_value, str):
+                        # Convert string to enum
+                        channel_type = getattr(
+                            habitat_sim.RLRAudioPropagationChannelLayoutType,
+                            sub_value
+                        )
+                        setattr(channel_layout, sub_attr, channel_type)
+                    elif hasattr(channel_layout, sub_attr):
+                        setattr(channel_layout, sub_attr, sub_value)
+                setattr(config_to, attr, channel_layout)
+                continue
+            elif attr == "outputDirectory":
+                # Special handling for output directory
+                if isinstance(value, str):
+                    setattr(config_to, attr, value)
+                else:
+                    raise TypeError(
+                        f"Expected string for {attr}, got {type(value)}"
+                    )
+                continue
         if ignore_keys is None or low_attr not in ignore_keys:
             if hasattr(config_to, low_attr):
                 if trans_dict is not None and low_attr in trans_dict:
