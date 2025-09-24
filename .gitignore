@@ -126,3 +126,5 @@ habitat-lab/habitat/config/habitat/dataset/pointnav/hm3d_fin.yaml
 0807_spot_hm3d/
 data/
 output_test/
+docs/
+res/
