@@ -210,23 +210,30 @@ class SingleAgentAccessMgr(AgentAccessMgr):
 
         # adapt to multi-agent setup
         if self._config.habitat_baselines.rl.ddppo.pretrained and (self.agent_name == "agent_0" or self.agent_name == "main_agent") : 
-            # actor_critic.load_state_dict(
-            #     {  # type: ignore
-            #         k[len("actor_critic.") :]: v
-            #         for k, v in pretrained_state["state_dict"].items()
-            #     }
-            # )
-            # adapt to better reload checkpoints
-            if "oracle_humanoid_future_trajectory" in self._env_spec.observation_space.spaces:
+            if "state_dict" in pretrained_state:
                 model_state_dict = actor_critic.state_dict()
-                filtered_pretrained_state_dict = {k[len("actor_critic.") :]: v for k, v in pretrained_state["state_dict"].items() if k[len("actor_critic.") :] in model_state_dict and v.shape == model_state_dict[k[len("actor_critic.") :]].shape}
+                filtered_pretrained_state_dict = {}
+                for k, v in pretrained_state["state_dict"].items():
+                    if k.startswith("actor_critic."):
+                        model_key = k[len("actor_critic."):]
+                    else:
+                        model_key = k
+                    if model_key in model_state_dict:
+                        filtered_pretrained_state_dict[model_key] = v
                 model_state_dict.update(filtered_pretrained_state_dict)
-                actor_critic.load_state_dict(model_state_dict, strict=False)
-            elif self._config.habitat_baselines.rl.auxiliary_losses:
+                actor_critic.load_state_dict(model_state_dict, strict=False)        
+            elif 0 in pretrained_state and "state_dict" in pretrained_state[0]:
                 model_state_dict = actor_critic.state_dict()
-                filtered_pretrained_state_dict = {k[len("actor_critic.") :]: v for k, v in pretrained_state["state_dict"].items() if k[len("actor_critic.") :] in model_state_dict and v.shape == model_state_dict[k[len("actor_critic.") :]].shape}
+                filtered_pretrained_state_dict = {}
+                for k, v in pretrained_state[0]["state_dict"].items():
+                    if k.startswith("actor_critic."):
+                        model_key = k[len("actor_critic."):]
+                    else:
+                        model_key = k
+                    if model_key in model_state_dict:
+                        filtered_pretrained_state_dict[model_key] = v
                 model_state_dict.update(filtered_pretrained_state_dict)
-                actor_critic.load_state_dict(model_state_dict, strict=False)
+                actor_critic.load_state_dict(model_state_dict, strict=False)            
             else:
                 actor_critic.load_state_dict(
                         { 
@@ -253,6 +260,7 @@ class SingleAgentAccessMgr(AgentAccessMgr):
 
         actor_critic.to(self._device)
         return actor_critic
+
 
     @property
     def rollouts(self) -> Storage:
