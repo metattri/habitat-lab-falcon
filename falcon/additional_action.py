@@ -824,12 +824,20 @@ class OracleNavRandCoordAction_Obstacle(OracleNavObstacleAction):  # type: ignor
         )
         if self._agent_index <= self.human_num:
             if self._task._use_episode_start_goal:
+                # 动态检测实际的 waypoint 数量
+                actual_goals = []
                 for i in range(self.num_goals):
                     attribute_name = f"human_{self._agent_index - 1}_waypoint_{i+1}_position"
                     if attribute_name in kwargs["episode"].info:
-                        self.goals[i] = kwargs["episode"].info[attribute_name]
+                        actual_goals.append(kwargs["episode"].info[attribute_name])
                     else:
-                        self.goals = None
+                        break  # 没有更多 waypoint 了
+                
+                # 如果找到了至少一个 waypoint,使用它们;否则设置为 None
+                if actual_goals:
+                    self.goals = actual_goals
+                else:
+                    self.goals = None
             else:
                 self._add_n_coord_nav_goals(self.num_goals)
 
