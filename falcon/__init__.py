@@ -3,3 +3,4 @@ from . import additional_action
 from . import additional_sensor
 from . import additional_metric
 from . import auxiliary_tasks
+from .falcon_habitat_inference import FalconInferenceEngine

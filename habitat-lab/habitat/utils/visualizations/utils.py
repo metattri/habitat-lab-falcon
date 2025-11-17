@@ -377,6 +377,8 @@ def overlay_frame(frame, info, additional=None):
     for k, v in flattened_info.items():
         if isinstance(v, str):
             lines.append(f"{k}: {v}")
+        elif v is None:
+            lines.append(f"{k}: None")
         else:
             lines.append(f"{k}: {v:.2f}")
     if additional is not None:

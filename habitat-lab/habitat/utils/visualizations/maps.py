@@ -494,7 +494,7 @@ def get_topdown_map_from_sim(
     """
     return get_topdown_map(
         sim.pathfinder,
-        sim.get_agent(agent_id).state.position[1],
+        sim.get_agent_state(agent_id).position[1],
         map_resolution,
         draw_border,
         meters_per_pixel,

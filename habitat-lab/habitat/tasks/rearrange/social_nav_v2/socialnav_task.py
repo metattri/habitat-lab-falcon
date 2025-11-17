@@ -34,6 +34,36 @@ def quaternion_to_rad_angle(source_rotation):
     rad_angle = 2 * np.arctan2(np.sqrt(source_rotation[1]**2 + source_rotation[2]**2 + source_rotation[3]**2), source_rotation[0])
     return rad_angle
 
+def set_audio_transform(
+    audio_sensor,
+    source_position=None,
+    listener_position=None,
+    listener_rotation=None
+) -> None:
+    """
+    设置音频传感器的声源和监听器变换
+    
+    Args:
+        audio_sensor: 音频传感器对象
+        source_position: 声源位置 (mn.Vector3, 可选)
+        listener_position: 监听器位置 (mn.Vector3, 可选)
+        listener_rotation: 监听器旋转 (quaternion.quaternion, 可选)
+    """
+    # 设置音频声源位置
+    audio_sensor.setAudioSourceTransform(source_position) if source_position is not None else None
+
+    # 仅在两个参数都提供时设置监听器变换
+    if listener_position is not None and listener_rotation is not None:
+        # 将 quaternion.quaternion 转换为 magnum.Vector4
+        # 注意：magnum 的四元数顺序是 (w, x, y, z)
+        rotation_vector4 = mn.Vector4(
+            listener_rotation.w,
+            listener_rotation.x,
+            listener_rotation.y,
+            listener_rotation.z,
+        )
+        audio_sensor.setAudioListenerTransform(listener_position, rotation_vector4)
+
 @registry.register_task(name="MultiAgentPointNavTask-v0")
 class MultiAgentPointNavTask(NavigationTask):
 
@@ -363,16 +393,19 @@ class MultiAgentPointNavTask(NavigationTask):
         self._cur_episode_step = 0
         # habitat-avh
         if "sounds" in episode.info:
-            agent_state = self._sim.get_agent_state(0)
-            for sound in episode.info["sounds"]:
-                audio_sensor_name = f"agent_0_{sound['sensor_name']}"
-                audio_sensor = self._sim.get_agent(0)._sensors[audio_sensor_name]
-                self._set_audio_transform(
-                    audio_sensor=audio_sensor,
-                    source_position=sound["position"],
-                    listener_position=agent_state.position,
-                    listener_rotation=agent_state.rotation
-                )
+            try:
+                agent_state = self._sim.get_agent_state(0)
+                for sound in episode.info["sounds"]:
+                    audio_sensor_name = f"agent_0_{sound['sensor_name']}"
+                    audio_sensor = self._sim.get_agent(0)._sensors[audio_sensor_name]
+                    set_audio_transform(
+                        audio_sensor=audio_sensor,
+                        source_position=sound["position"],
+                        listener_position=agent_state.position,
+                        listener_rotation=agent_state.rotation
+                    )
+            except Exception as e:
+                rearrange_logger.error(f"Error setting audio transform: {e}")
         if fetch_observations:
             self._sim.maybe_update_articulated_agent()
             return self._get_observations(episode)
@@ -417,15 +450,18 @@ class MultiAgentPointNavTask(NavigationTask):
     def step(self, action: Dict[str, Any], episode: Episode):
         # habitat-avh
         if "sounds" in episode.info:
-            agent_state = self._sim.get_agent_state(0)
-            for sound in episode.info["sounds"]:
-                audio_sensor_name = f"agent_0_{sound['sensor_name']}"
-                audio_sensor = self._sim.get_agent(0)._sensors[audio_sensor_name]
-                self._set_audio_transform(
-                    audio_sensor=audio_sensor,
-                    listener_position=agent_state.position,
-                    listener_rotation=agent_state.rotation
-                )
+            try:
+                agent_state = self._sim.get_agent_state(0)
+                for sound in episode.info["sounds"]:
+                    audio_sensor_name = f"agent_0_{sound['sensor_name']}"
+                    audio_sensor = self._sim.get_agent(0)._sensors[audio_sensor_name]
+                    set_audio_transform(
+                        audio_sensor=audio_sensor,
+                        listener_position=agent_state.position,
+                        listener_rotation=agent_state.rotation
+                    )
+            except Exception as e:
+                rearrange_logger.error(f"Error setting audio transform: {e}")
         if "action_args" in action:
             action_args = action["action_args"]
             if self._enable_safe_drop and self._is_violating_safe_drop(
@@ -519,37 +555,6 @@ class MultiAgentPointNavTask(NavigationTask):
 
     def get_n_targets(self) -> int:
         return self.n_objs
-
-    def _set_audio_transform(
-        self,
-        audio_sensor,
-        source_position=None,
-        listener_position=None,
-        listener_rotation=None
-    ) -> None:
-        """
-        设置音频传感器的声源和监听器变换
-        
-        Args:
-            audio_sensor: 音频传感器对象
-            source_position: 声源位置 (mn.Vector3, 可选)
-            listener_position: 监听器位置 (mn.Vector3, 可选)
-            listener_rotation: 监听器旋转 (quaternion.quaternion, 可选)
-        """
-        # 设置音频声源位置
-        audio_sensor.setAudioSourceTransform(source_position) if source_position is not None else None
-
-        # 仅在两个参数都提供时设置监听器变换
-        if listener_position is not None and listener_rotation is not None:
-            # 将 quaternion.quaternion 转换为 magnum.Vector4
-            # 注意：magnum 的四元数顺序是 (w, x, y, z)
-            rotation_vector4 = mn.Vector4(
-                listener_rotation.w,
-                listener_rotation.x,
-                listener_rotation.y,
-                listener_rotation.z,
-            )
-            audio_sensor.setAudioListenerTransform(listener_position, rotation_vector4)
     
     @property
     def should_end(self) -> bool:
