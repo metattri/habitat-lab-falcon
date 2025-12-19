@@ -1,4 +1,3 @@
-# Copyright (c) 2023 Boston Dynamics AI Institute LLC. All rights reserved.
 import os
 import csv
 from gym import spaces
