@@ -361,7 +361,8 @@ class MultiAgentPointNavTask(NavigationTask):
             self._human_num = 0
         if self._use_episode_start_goal:
             self.agent0_episode_start_position = episode.start_position
-            self.agent0_episode_start_rotation = quaternion_to_rad_angle(episode.start_rotation)
+            # self.agent0_episode_start_rotation = quaternion_to_rad_angle(episode.start_rotation)
+            self.agent0_episode_start_rotation = episode.start_rotation
             self.agent0_episode_goal = episode.goals[0].position
             for i in range(self._human_num):
                 position_key = f"human_{i}_waypoint_0_position"
