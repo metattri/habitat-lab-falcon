@@ -74,6 +74,12 @@ class MultiAgentPointNavTask(NavigationTask):
 
     _cur_episode_step: int
     _articulated_agent_pos_start: Dict[str, Tuple[np.ndarray, float]]
+    # 盲区人类相关属性
+    _blind_spot_humans: List[int]  # 盲区人类索引列表
+    _blind_spot_trigger_distance: float  # 触发距离
+    _blind_spot_triggered: Dict[int, bool]  # 记录每个盲区人类是否已触发
+    _blind_spot_current_waypoint: Dict[int, int]  # 每个盲区人类当前的waypoint索引
+    _bound_human_finished: Dict[int, bool]  # 绑定人类是否已完成所有waypoint移动
 
     def _duplicate_sensor_suite(self, sensor_suite: SensorSuite) -> None:
         """
@@ -196,8 +202,13 @@ class MultiAgentPointNavTask(NavigationTask):
         self.agent7_episode_start_position = None
         self.agent7_episode_start_rotation = None
         self.agent8_episode_start_position = None
-        self.agent8_episode_start_rotation = None
-
+        self.agent8_episode_start_rotation = None        
+        # 盲区人类初始化
+        self._blind_spot_humans = []
+        self._blind_spot_trigger_distance = 3.0  # 默认触发距离
+        self._blind_spot_triggered = {}
+        self._blind_spot_current_waypoint = {}
+        self._bound_human_finished = {}  # 绑定人类移动完成状态
     def overwrite_sim_config(self, config: Any, episode: Episode) -> Any:
         return config
 
@@ -392,6 +403,21 @@ class MultiAgentPointNavTask(NavigationTask):
         self.should_end = False
         self._done = False
         self._cur_episode_step = 0
+        
+        # habitat-avh: 初始化盲区人类状态
+        self._blind_spot_humans = episode.info.get("blind_spot_humans", [])
+        self._blind_spot_trigger_distance = episode.info.get("blind_spot_trigger_distance", 3.0)
+        self._blind_spot_triggered = {human_idx: False for human_idx in self._blind_spot_humans}
+        self._blind_spot_current_waypoint = {human_idx: 0 for human_idx in self._blind_spot_humans}
+        
+        # habitat-avh: 初始化绑定人类移动完成状态
+        self._bound_human_finished = {}
+        if "sounds" in episode.info:
+            for sound in episode.info["sounds"]:
+                bound_human_idx = sound.get("bound_human_idx")
+                if bound_human_idx is not None:
+                    self._bound_human_finished[bound_human_idx] = False
+        
         # habitat-avh
         if "sounds" in episode.info:
             try:
@@ -432,6 +458,10 @@ class MultiAgentPointNavTask(NavigationTask):
                 observations=obs, episode=episode, task=self, should_time=True
             )
         )
+        
+        # habitat-avh: 静止盲区人类绑定的音频 RIR 置零
+        obs = self._zero_static_blind_spot_audio(obs, episode)
+        
         return obs
 
     def _is_violating_safe_drop(self, action_args):
@@ -448,16 +478,153 @@ class MultiAgentPointNavTask(NavigationTask):
             and min_dist < self._obj_succ_thresh
         )
 
+    def _zero_static_blind_spot_audio(self, obs: Dict[str, Any], episode: Episode) -> Dict[str, Any]:
+        """
+        将静止状态人类绑定的音频传感器 RIR 置零
+        
+        静止状态包括：
+        1. 盲区人类未被触发（等待状态）
+        2. 绑定人类已完成所有 waypoint 移动（停止状态）
+        
+        Args:
+            obs: 观测字典
+            episode: 当前 episode
+            
+        Returns:
+            处理后的观测字典
+        """
+        if "sounds" not in episode.info:
+            return obs
+        
+        for sound in episode.info["sounds"]:
+            bound_human_idx = sound.get("bound_human_idx")
+            if bound_human_idx is None:
+                continue
+            
+            should_zero = False
+            
+            # 检查该人类是否是盲区人类且未被触发
+            if bound_human_idx in self._blind_spot_humans:
+                if not self._blind_spot_triggered.get(bound_human_idx, False):
+                    should_zero = True
+            
+            # 检查该人类是否已完成所有 waypoint 移动
+            if self._bound_human_finished.get(bound_human_idx, False):
+                should_zero = True
+            
+            if should_zero:
+                # 人类静止，将对应音频置零
+                sensor_name = sound.get("sensor_name")
+                obs_key = f"agent_0_{sensor_name}"
+                if obs_key in obs:
+                    # 将音频数据置零（保持相同的 shape 和 dtype）
+                    obs[obs_key] = np.zeros_like(obs[obs_key])
+        
+        return obs
+
+    def _update_blind_spot_humans(self, episode: Episode) -> None:
+        """
+        更新盲区人类状态：当 agent_0 靠近时触发移动
+        模拟拐角处突然冲出的人类场景
+        """
+        if not self._blind_spot_humans:
+            return
+        
+        try:
+            agent_state = self._sim.get_agent_state(0)
+            agent_pos = np.array(agent_state.position)
+            
+            for human_idx in self._blind_spot_humans:
+                # 获取人类当前位置
+                human_agent_idx = human_idx + 1  # episode中0-based，agent中1-based
+                try:
+                    human_state = self._sim.get_agent_state(human_agent_idx)
+                    human_pos = np.array(human_state.position)
+                except Exception:
+                    continue
+                
+                # 计算 agent_0 与人类的距离
+                distance = np.linalg.norm(agent_pos[[0, 2]] - human_pos[[0, 2]])  # 2D距离
+                
+                # 如果距离小于触发距离且未触发，则触发移动
+                if distance < self._blind_spot_trigger_distance and not self._blind_spot_triggered[human_idx]:
+                    self._blind_spot_triggered[human_idx] = True
+                    self._blind_spot_current_waypoint[human_idx] = 1  # 开始移动到下一个waypoint
+                    rearrange_logger.info(
+                        f"Blind spot human {human_idx} triggered! Agent distance: {distance:.2f}m"
+                    )
+                    
+                    # 设置人类移动到下一个waypoint
+                    self._move_blind_spot_human_to_next_waypoint(episode, human_idx)
+                    
+        except Exception as e:
+            rearrange_logger.error(f"Error updating blind spot humans: {e}")
+
+    def _move_blind_spot_human_to_next_waypoint(self, episode: Episode, human_idx: int) -> None:
+        """
+        将盲区人类移动到下一个waypoint
+        如果没有下一个waypoint，标记该人类为已完成移动
+        """
+        current_wp_idx = self._blind_spot_current_waypoint.get(human_idx, 0)
+        next_wp_idx = current_wp_idx
+        
+        position_key = f"human_{human_idx}_waypoint_{next_wp_idx}_position"
+        rotation_key = f"human_{human_idx}_waypoint_{next_wp_idx}_rotation"
+        
+        if position_key in episode.info and rotation_key in episode.info:
+            new_position = episode.info[position_key]
+            new_rotation = episode.info[rotation_key]
+            
+            human_agent_idx = human_idx + 1
+            try:
+                articulated_agent = self._sim.get_agent_data(human_agent_idx).articulated_agent
+                articulated_agent.base_pos = mn.Vector3(new_position)
+                articulated_agent.base_rot = new_rotation
+                rearrange_logger.info(
+                    f"Blind spot human {human_idx} moving to waypoint {next_wp_idx}: {new_position}"
+                )
+                
+                # 检查是否还有下一个waypoint
+                next_next_wp_idx = next_wp_idx + 1
+                next_position_key = f"human_{human_idx}_waypoint_{next_next_wp_idx}_position"
+                if next_position_key not in episode.info:
+                    # 没有下一个waypoint，标记该人类为已完成移动
+                    self._bound_human_finished[human_idx] = True
+                    rearrange_logger.info(
+                        f"Blind spot human {human_idx} finished all waypoints, marking as static"
+                    )
+            except Exception as e:
+                rearrange_logger.error(f"Error moving blind spot human {human_idx}: {e}")
+        else:
+            # 当前waypoint不存在，标记为已完成
+            self._bound_human_finished[human_idx] = True
+
     def step(self, action: Dict[str, Any], episode: Episode):
-        # habitat-avh
+        # habitat-avh: 盲区人类触发逻辑
+        self._update_blind_spot_humans(episode)
+        
+        # habitat-avh: 更新音频位置（包括绑定人类的音频）
         if "sounds" in episode.info:
             try:
                 agent_state = self._sim.get_agent_state(0)
                 for sound in episode.info["sounds"]:
                     audio_sensor_name = f"agent_0_{sound['sensor_name']}"
                     audio_sensor = self._sim.get_agent(0)._sensors[audio_sensor_name]
+                    
+                    # 检查是否绑定了人类，如果是则更新音频源位置为人类当前位置
+                    source_position = None
+                    if "bound_human_idx" in sound:
+                        bound_human_idx = sound["bound_human_idx"]
+                        try:
+                            # human_idx 在 episode 中是 0-based，但 agent 中是 1-based
+                            human_state = self._sim.get_agent_state(bound_human_idx + 1)
+                            source_position = human_state.position
+                        except Exception:
+                            pass
+                    
                     set_audio_transform(
                         audio_sensor=audio_sensor,
+                        source_position=source_position,
                         listener_position=agent_state.position,
                         listener_rotation=agent_state.rotation
                     )
@@ -479,6 +646,9 @@ class MultiAgentPointNavTask(NavigationTask):
                 and self._constraint_violation_drops_object
             ):
                 grasp_mgr.desnap(True)
+
+        # habitat-avh: 静止盲区人类绑定的音频 RIR 置零
+        obs = self._zero_static_blind_spot_audio(obs, episode)
 
         return obs
 
